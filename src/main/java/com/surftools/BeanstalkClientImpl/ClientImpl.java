@@ -21,9 +21,13 @@ package com.surftools.BeanstalkClientImpl;
  * along with JavaBeanstalkCLient. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 import com.surftools.BeanstalkClient.BeanstalkException;
 import com.surftools.BeanstalkClient.Client;
 import com.surftools.BeanstalkClient.Job;
+
+import java.io.IOException;
+
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +44,12 @@ public class ClientImpl implements Client {
     private ThreadLocal<ProtocolHandler> tlProtocolHandler = new ThreadLocal<ProtocolHandler>() {
         @Override // ThreadLocal
         protected ProtocolHandler initialValue() {
-            return new ProtocolHandler(host, port);
+            try {
+                return new ProtocolHandler(host, port);
+            } catch (IOException e) {
+                // Not clear how to handle this.
+                throw new RuntimeException(e.getMessage());
+            }
         }
     };
 
@@ -52,11 +61,11 @@ public class ClientImpl implements Client {
         }
     }
 
-    public ClientImpl() {
+    public ClientImpl() throws IOException {
         this(DEFAULT_HOST, DEFAULT_PORT);
     }
 
-    public ClientImpl(String host, int port) {
+    public ClientImpl(String host, int port) throws IOException {
         this.host = host;
         this.port = port;
 
@@ -67,12 +76,12 @@ public class ClientImpl implements Client {
     // Producer methods
     // ****************************************************************
     @Override // Client
-    public long put(long priority, int delaySeconds, int timeToRun, byte[] data) {
+    public long put(long priority, int delaySeconds, int timeToRun, byte[] data) throws IOException {
         if (data == null) {
-            throw new BeanstalkException("null data");
+            throw new NullPointerException("null data");
         }
         if (priority > MAX_PRIORITY) {
-            throw new BeanstalkException("invalid priority");
+            throw new IllegalArgumentException("invalid priority");
         }
         long jobId = -1;
         Request request = new Request(
@@ -87,8 +96,7 @@ public class ClientImpl implements Client {
                 ExpectedResponse.None);
         Response response = getProtocolHandler().processRequest(request);
         if (response != null && response.getStatus().equals("JOB_TOO_BIG")) {
-            BeanstalkException be = new BeanstalkException(response.getStatus());
-            throw be;
+            throw new BeanstalkException(response.getStatus());
         }
         if (response != null && response.isMatchOk()) {
             jobId = Long.parseLong(response.getReponse());
@@ -97,9 +105,9 @@ public class ClientImpl implements Client {
     }
 
     @Override // Client
-    public void useTube(String tubeName) {
+    public void useTube(String tubeName) throws IOException {
         if (tubeName == null) {
-            throw new BeanstalkException("null tubeName");
+            throw new NullPointerException("null tubeName");
         }
         Request request = new Request(
                 "use " + tubeName,
@@ -115,7 +123,7 @@ public class ClientImpl implements Client {
     //	job-related
     // ****************************************************************	
     @Override // Client
-    public Job reserve(Integer timeoutSeconds) {
+    public Job reserve(Integer timeoutSeconds) throws IOException {
         Job job = null;
         String command = (timeoutSeconds == null)
                          ? "reserve"
@@ -133,8 +141,7 @@ public class ClientImpl implements Client {
                 2);
         Response response = getProtocolHandler().processRequest(request);
         if (response != null && response.getStatus().equals("DEADLINE_SOON")) {
-            BeanstalkException be = new BeanstalkException(response.getStatus());
-            throw be;
+            throw new BeanstalkException(response.getStatus());
         }
         if (response != null && response.isMatchOk()) {
             long jobId = Long.parseLong(response.getReponse());
@@ -145,7 +152,7 @@ public class ClientImpl implements Client {
     }
 
     @Override // Client
-    public boolean delete(long jobId) {
+    public boolean delete(long jobId) throws IOException {
         Request request = new Request(
                 "delete " + jobId,
                 "DELETED",
@@ -157,7 +164,7 @@ public class ClientImpl implements Client {
     }
 
     @Override // Client
-    public boolean release(long jobId, long priority, int delaySeconds) {
+    public boolean release(long jobId, long priority, int delaySeconds) throws IOException {
         Request request = new Request(
                 "release " + jobId + " " + priority + " " + delaySeconds,
                 new String[] {
@@ -173,7 +180,7 @@ public class ClientImpl implements Client {
     }
 
     @Override // Client
-    public boolean bury(long jobId, long priority) {
+    public boolean bury(long jobId, long priority) throws IOException {
         Request request = new Request(
                 "bury " + jobId + " " + priority,
                 "BURIED",
@@ -185,7 +192,7 @@ public class ClientImpl implements Client {
     }
 
     @Override // Client
-    public boolean touch(long jobId) {
+    public boolean touch(long jobId) throws IOException {
         Request request = new Request(
                 "touch " + jobId,
                 "TOUCHED",
@@ -201,9 +208,9 @@ public class ClientImpl implements Client {
     //	tube-related
     // ****************************************************************
     @Override // Client
-    public int watch(String tubeName) {
+    public int watch(String tubeName) throws IOException {
         if (tubeName == null) {
-            throw new BeanstalkException("null tubeName");
+            throw new NullPointerException("null tubeName");
         }
         Request request = new Request(
                 "watch " + tubeName,
@@ -216,9 +223,9 @@ public class ClientImpl implements Client {
     }
 
     @Override // Client
-    public int ignore(String tubeName) {
+    public int ignore(String tubeName) throws IOException {
         if (tubeName == null) {
-            throw new BeanstalkException("null tubeName");
+            throw new NullPointerException("null tubeName");
         }
         Request request = new Request(
                 "ignore " + tubeName,
@@ -237,7 +244,7 @@ public class ClientImpl implements Client {
     //	peek-related
     // ****************************************************************
     @Override // Client
-    public Job peek(long jobId) {
+    public Job peek(long jobId) throws IOException {
         Job job = null;
         Request request = new Request(
                 "peek " + jobId,
@@ -256,7 +263,7 @@ public class ClientImpl implements Client {
     }
 
     @Override // Client
-    public Job peekBuried() {
+    public Job peekBuried() throws IOException {
         Job job = null;
         Request request = new Request(
                 "peek-buried",
@@ -275,7 +282,7 @@ public class ClientImpl implements Client {
     }
 
     @Override // Client
-    public Job peekDelayed() {
+    public Job peekDelayed() throws IOException {
         Job job = null;
         Request request = new Request(
                 "peek-delayed",
@@ -294,7 +301,7 @@ public class ClientImpl implements Client {
     }
 
     @Override // Client
-    public Job peekReady() {
+    public Job peekReady() throws IOException {
         Job job = null;
         Request request = new Request(
                 "peek-ready",
@@ -313,7 +320,7 @@ public class ClientImpl implements Client {
     }
 
     @Override // Client
-    public int kick(int count) {
+    public int kick(int count) throws IOException {
         Request request = new Request(
                 "kick " + count,
                 "KICKED",
@@ -333,7 +340,7 @@ public class ClientImpl implements Client {
     // ****************************************************************
     @SuppressWarnings("unchecked")
     @Override // Client
-    public Map<String, String> statsJob(long jobId) {
+    public Map<String, String> statsJob(long jobId) throws IOException {
         Request request = new Request(
                 "stats-job " + jobId,
                 "OK",
@@ -350,7 +357,7 @@ public class ClientImpl implements Client {
 
     @SuppressWarnings("unchecked")
     @Override // Client
-    public Map<String, String> statsTube(String tubeName) {
+    public Map<String, String> statsTube(String tubeName) throws IOException {
         if (tubeName == null) {
             return null;
         }
@@ -371,7 +378,7 @@ public class ClientImpl implements Client {
 
     @SuppressWarnings("unchecked")
     @Override // Client
-    public Map<String, String> stats() {
+    public Map<String, String> stats() throws IOException {
         Request request = new Request(
                 "stats",
                 "OK",
@@ -388,7 +395,7 @@ public class ClientImpl implements Client {
 
     @SuppressWarnings("unchecked")
     @Override // Client
-    public List<String> listTubes() {
+    public List<String> listTubes() throws IOException {
         Request request = new Request(
                 "list-tubes",
                 "OK",
@@ -404,7 +411,7 @@ public class ClientImpl implements Client {
     }
 
     @Override // Client
-    public String listTubeUsed() {
+    public String listTubeUsed() throws IOException {
         String tubeName = null;
         Request request = new Request(
                 "list-tube-used",
@@ -421,7 +428,7 @@ public class ClientImpl implements Client {
 
     @SuppressWarnings("unchecked")
     @Override // Client
-    public List<String> listTubesWatched() {
+    public List<String> listTubesWatched() throws IOException {
         Request request = new Request(
                 "list-tubes-watched",
                 "OK",
@@ -457,7 +464,7 @@ public class ClientImpl implements Client {
     }
 
     @Override // Client
-    public boolean pauseTube(String tubeName, int pauseDelay) {
+    public boolean pauseTube(String tubeName, int pauseDelay) throws IOException {
         Request request = new Request(
                 "pause-tube " + tubeName + " " + pauseDelay,
                 "PAUSED",
@@ -472,7 +479,7 @@ public class ClientImpl implements Client {
     }
 
     @Override // Client
-    public String getServerVersion() {
+    public String getServerVersion() throws IOException {
         Map<String, String> stats = stats();
         if (stats == null) {
             throw new BeanstalkException("could not get stats");

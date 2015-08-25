@@ -21,13 +21,15 @@ package com.surftools.BeanstalkClientImpl;
  * along with JavaBeanstalkCLient. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+import com.surftools.BeanstalkClient.BeanstalkException;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-
-import com.surftools.BeanstalkClient.BeanstalkException;
 
 /**
  * Utility classes for serializing Serializable objects to byte arrays, for putting
@@ -37,38 +39,25 @@ public class Serializer {
     /**
      * Serialize an object to a byte array.
      */
-    public static byte[] serializableToByteArray(Serializable serializable) {
-        byte[] bytes;
-        ByteArrayOutputStream baos = null;
-        ObjectOutputStream oos = null;
-        try {
-            baos = new ByteArrayOutputStream();
-            oos = new ObjectOutputStream(baos);
-            oos.writeObject(serializable);
-            oos.flush();
-            bytes = baos.toByteArray();
-            oos.close();
-            baos.close();
-        } catch(Exception e) {
-            throw new BeanstalkException(e.getMessage());
-        }
+    public static byte[] serializableToByteArray(Serializable serializable) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(serializable);
+        oos.flush();
+        byte[] bytes = baos.toByteArray();
+        oos.close();
+        baos.close();
+
         return bytes;
     }
 
     /**
      * Deserialize a byte array into an object.
      */
-    public static Serializable byteArrayToSerializable(byte[] bytes) {
-        Serializable serializable = null;
-        ByteArrayInputStream bais = null;
-        ObjectInputStream ois = null;
-        try {
-            bais = new ByteArrayInputStream(bytes);
-            ois = new ObjectInputStream(bais);
-            serializable = (Serializable) ois.readObject();
-        } catch(Exception e) {
-            throw new BeanstalkException(e.getMessage());
-        }
-        return serializable;
+    public static Serializable byteArrayToSerializable(byte[] bytes) throws IOException, ClassNotFoundException {
+        ByteArrayInputStream bais = new ByteArrayInputStream(bytes);
+        ObjectInputStream ois = new ObjectInputStream(bais);
+
+        return (Serializable) ois.readObject();
     }
 }

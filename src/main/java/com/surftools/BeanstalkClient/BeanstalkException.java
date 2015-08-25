@@ -22,16 +22,16 @@ package com.surftools.BeanstalkClient;
  *
  */
 
+import java.io.IOException;
+
 /**
+ * Exception for reporting protocol errors.
  *
  * @author Robert Tykulsker
  */
-public class BeanstalkException extends RuntimeException {
+public class BeanstalkException extends IOException {
     private static final long serialVersionUID = 5592298800830452296L;
 
-    /**
-     * @param message
-     */
     public BeanstalkException(String message) {
         super(message);
     }

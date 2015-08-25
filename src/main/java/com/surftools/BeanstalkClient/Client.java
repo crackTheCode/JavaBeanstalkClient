@@ -20,6 +20,9 @@ package com.surftools.BeanstalkClient;
  * along with JavaBeanstalkCLient. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+import java.io.IOException;
+
 import java.util.List;
 import java.util.Map;
 
@@ -52,15 +55,21 @@ public interface Client {
      * @param data The raw data for the message.
      *
      * @return the job ID.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public long put(long priority, int delaySeconds, int timeToRun, byte[] data);
+    public long put(long priority, int delaySeconds, int timeToRun, byte[] data) throws IOException;
 
     /**
      * Specify which tube to put future jobs into.
      *
      * @param tubeName Which tube to put jobs into. If not specified, defaults to "default".
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public void useTube(String tubeName);
+    public void useTube(String tubeName) throws IOException;
 
     // ****************************************************************
     // Consumer methods
@@ -75,8 +84,11 @@ public interface Client {
      * no jobs are available.
      *
      * @return The reserved job. Never null.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public Job reserve(Integer timeoutSeconds);
+    public Job reserve(Integer timeoutSeconds) throws IOException;
 
     /**
      * Delete a job by ID.
@@ -84,8 +96,11 @@ public interface Client {
      * @param jobId The job to delete.
      *
      * @return Whether the job was found.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public boolean delete(long jobId);
+    public boolean delete(long jobId) throws IOException;
 
     /**
      * To release a job that was reserved. This puts it back into the ready queue 
@@ -97,8 +112,11 @@ public interface Client {
      * @param delaySeconds How many seconds to wait before delivering the job.
      *
      * @return Whether the job was found.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public boolean release(long jobId, long priority, int delaySeconds);
+    public boolean release(long jobId, long priority, int delaySeconds) throws IOException;
 
     /**
      * Bury the job after being reserved. This is useful for jobs that cause errors
@@ -109,8 +127,11 @@ public interface Client {
      * urgent) inclusive and 2**32 (least urgent) exclusive.
      *
      * @return Whether the job was found.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public boolean bury(long jobId, long priority);
+    public boolean bury(long jobId, long priority) throws IOException;
 
     /**
      * Touch a reserved job, to tell the server that you're still working on it
@@ -119,8 +140,11 @@ public interface Client {
      * @param jobId The job to touch.
      *
      * @return Whether the job was found.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public boolean touch(long jobId);
+    public boolean touch(long jobId) throws IOException;
 
     // ****************************************************************
     // Consumer methods
@@ -134,8 +158,11 @@ public interface Client {
      * @param tubeName The tube to watch.
      *
      * @return The number of tubes in the watch list (after this command).
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public int watch(String tubeName);
+    public int watch(String tubeName) throws IOException;
 
     /**
      * Remove a tube from the watch list. The client is not permitted to
@@ -145,8 +172,11 @@ public interface Client {
      *
      * @return The number of tubes in the watch list (after this command), or
      * -1 if the client tried to remove the last tube.
+     *
+     *  @throws IOException on network error.
+     *  @throws BeanstalkException on protocol error.
      */
-    public int ignore(String tubeName);
+    public int ignore(String tubeName) throws IOException;
 
     // ****************************************************************
     // Consumer methods
@@ -159,30 +189,42 @@ public interface Client {
      * @param jobId The job to peek.
      *
      * @return The job, or null if not found.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public Job peek(long jobId);
+    public Job peek(long jobId) throws IOException;
 
     /**
      * Fetches the next ready job, in other words, the job that reserve()
      * would have returned.
      *
      * @return The next ready job, or null if there are none.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public Job peekReady();
+    public Job peekReady() throws IOException;
 
     /**
      * Fetches the delayed job with the shortest delay left.
      *
      * @return The next delayed job, or null if there are none.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public Job peekDelayed();
+    public Job peekDelayed() throws IOException;
 
     /**
      * Fetches the next job in the bury list.
      *
      * @return The next buried job, or null if there are none.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public Job peekBuried();
+    public Job peekBuried() throws IOException;
 
     /**
      * In the currently "used" tube, kicks buried jobs. If there are
@@ -191,8 +233,11 @@ public interface Client {
      * @param count The maximum number of jobs to kick.
      *
      * @return The number of jobs that were kicked.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public int kick(int count);
+    public int kick(int count) throws IOException;
 
     /*****************************************************************
      * Consumer methods 
@@ -212,19 +257,23 @@ public interface Client {
      *   <li>"state" is "ready" or "delayed" or "reserved" or "buried"</li>
      *   <li>"pri" is the priority value set by the put, release, or bury commands.</li>
      *   <li>"age" is the time in seconds since the put command that created this job.</li>
-     *   <li>"time-left" is the number of seconds left until the server puts this job
-       into the ready queue. This number is only meaningful if the job is
-       reserved or delayed. If the job is reserved and this amount of time
-       elapses before its state changes, it is considered to have timed out.</li>
+     *   <li>"time-left" is the number of seconds left until the server puts
+     *   this job into the ready queue. This number is only meaningful if the
+     *   job is reserved or delayed. If the job is reserved and this amount of
+     *   time elapses before its state changes, it is considered to have timed
+     *   out.</li>
      *   <li>"timeouts" is the number of times this job has timed out during a
-       reservation.</li>
-     *   <li>"releases" is the number of times a client has released this job from a
-       reservation.</li>
+     *   reservation.</li>
+     *   <li>"releases" is the number of times a client has released this job
+     *   from a reservation.</li>
      *   <li>"buries" is the number of times this job has been buried.</li>
      *   <li>"kicks" is the number of times this job has been kicked.</li>
-     </ul>
+     * </ul>
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public Map<String, String> statsJob(long jobId);
+    public Map<String, String> statsJob(long jobId) throws IOException;
 
     /**
      * Get statistics about a tube.
@@ -247,9 +296,11 @@ public interface Client {
      *   issued a reserve command while watching this tube but not yet received
      *   a response.</li>
      * </ul>
-
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public Map<String, String> statsTube(String tubeName);
+    public Map<String, String> statsTube(String tubeName) throws IOException;
 
     /**
      * Get statistics about the server.
@@ -308,29 +359,41 @@ public interface Client {
      *   <li>"binlog-max-size" is the maximum size in bytes a binlog file is
      *   allowed to get before a new binlog file is opened</li>
      * </ul>
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public Map<String, String> stats();
+    public Map<String, String> stats() throws IOException;
 
     /**
      * Fetch a list of all existing tubes.
      *
      * @return A list of all existing tubes.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public List<String> listTubes();
+    public List<String> listTubes() throws IOException;
 
     /**
      * Fetch the tube currently being used by this client.
      *
      * @return The used tube.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public String listTubeUsed();
+    public String listTubeUsed() throws IOException;
 
     /**
      * Fetch the list of tubes currently being watched by this client.
      *
      * @return A list of watched tubes.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public List<String> listTubesWatched();
+    public List<String> listTubesWatched() throws IOException;
 
     /******************************************************************
      * Client methods
@@ -343,8 +406,11 @@ public interface Client {
 
     /**
      * Get the version of the beanstalkd daemon.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public String getServerVersion();
+    public String getServerVersion() throws IOException;
 
     /**
      * Close underlying connection to beanstalkd.
@@ -367,6 +433,9 @@ public interface Client {
      * @param tubeName The tube to pause.
      * @param pause An integer number of seconds to wait before reserving any
      * more jobs from the queue.
+     *
+     * @throws IOException on network error.
+     * @throws BeanstalkException on protocol error.
      */
-    public boolean pauseTube(String tubeName, int pause);
+    public boolean pauseTube(String tubeName, int pause) throws IOException;
 }

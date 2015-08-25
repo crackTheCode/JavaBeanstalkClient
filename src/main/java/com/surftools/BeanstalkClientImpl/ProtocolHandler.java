@@ -21,19 +21,22 @@ package com.surftools.BeanstalkClientImpl;
  * along with JavaBeanstalkCLient. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+import com.surftools.BeanstalkClient.BeanstalkException;
+
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.IOException;
 import java.io.OutputStream;
+
 import java.net.Socket;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.surftools.BeanstalkClient.BeanstalkException;
 
 /**
  * Communicates with the server.
@@ -45,94 +48,89 @@ public class ProtocolHandler {
     };
     private Socket socket;
 
-    ProtocolHandler(String host, int port) {
-        try {
-            socket = new Socket(host, port);
-        } catch(Exception e) {
-            throw new BeanstalkException(e.getMessage());
-        }
+    ProtocolHandler(String host, int port) throws IOException {
+        socket = new Socket(host, port);
     }
 
-    Response processRequest(Request request) {
+    /**
+     * Send the request to the server and return its response.
+     */
+    Response processRequest(Request request) throws IOException {
         validateRequest(request);
 
         Response response = null;
         InputStream is = null;
         OutputStream os = null;
 
-        try {
-            // formulate the request ...
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            baos.write(request.getCommand().getBytes());
+        // formulate the request ...
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        baos.write(request.getCommand().getBytes());
+        baos.write(CRLF);
+        if(request.getData() != null) {
+            baos.write(request.getData());
             baos.write(CRLF);
-            if(request.getData() != null) {
-                baos.write(request.getData());
-                baos.write(CRLF);
-            }
-            baos.flush();
-            os = socket.getOutputStream();
-            os.write(baos.toByteArray());
-            os.flush();
-            baos.close();
+        }
+        baos.flush();
+        os = socket.getOutputStream();
+        os.write(baos.toByteArray());
+        os.flush();
+        baos.close();
 
-            is = socket.getInputStream();
-            String line = new String(readInputStream(is, 0));
+        is = socket.getInputStream();
+        String line = new String(readInputStream(is, 0));
 
-            String[] tokens = line.split(" ");
-            if(tokens == null || tokens.length == 0) {
-                throw new BeanstalkException("no response");
-            }
+        String[] tokens = line.split(" ");
+        if(tokens == null || tokens.length == 0) {
+            throw new BeanstalkException("no response");
+        }
 
-            response = new Response();
-            response.setResponseLine(line);
-            String status = tokens[0];
-            response.setStatus(status);
-            if(tokens.length > 1) {
-                response.setReponse(tokens[1]);
-            }
-            setState(request, response, status);
+        response = new Response();
+        response.setResponseLine(line);
+        String status = tokens[0];
+        response.setStatus(status);
+        if(tokens.length > 1) {
+            response.setReponse(tokens[1]);
+        }
+        setState(request, response, status);
 
-            switch(request.getExpectedResponse()) {
-                case Map:
-                    if(response.isMatchError()) {
-                        break;
+        switch(request.getExpectedResponse()) {
+            case Map:
+                if(response.isMatchError()) {
+                    break;
+                }
+                response.setData(parseForMap(is));
+                break;
+            case List:
+                response.setData(parseForList(is));
+                break;
+            case ByteArray:
+                if(response.isMatchError()) {
+                    break;
+                }
+                int length;
+                if(request.getExpectedDataLengthIndex() > 0) {
+                    if (request.getExpectedDataLengthIndex() >= tokens.length) {
+                        throw new BeanstalkException("length missing from response line");
                     }
-                    response.setData(parseForMap(is));
-                    break;
-                case List:
-                    response.setData(parseForList(is));
-                    break;
-                case ByteArray:
-                    if(response.isMatchError()) {
-                        break;
+                    String lengthStr = tokens[request.getExpectedDataLengthIndex()];
+                    try {
+                        length = Integer.parseInt(lengthStr);
+                    } catch(NumberFormatException ex) {
+                        throw new BeanstalkException("could not parse response length \"" + lengthStr + "\"");
                     }
-                    int length;
-                    if(request.getExpectedDataLengthIndex() > 0) {
-                        if (request.getExpectedDataLengthIndex() >= tokens.length) {
-                            throw new BeanstalkException("length missing from response line");
-                        }
-                        String lengthStr = tokens[request.getExpectedDataLengthIndex()];
-                        try {
-                            length = Integer.parseInt(lengthStr);
-                        } catch(NumberFormatException ex) {
-                            throw new BeanstalkException("could not parse response length \"" + lengthStr + "\"");
-                        }
-                    } else {
-                        length = 0;
-                    }
-                    byte[] data = readInputStream(is, length);
-                    response.setData(data);
-                    break;
-                default:
-                    break;
-            }
-        } catch(Exception e) {
-            throw new BeanstalkException(e.getMessage());
+                } else {
+                    length = 0;
+                }
+                byte[] data = readInputStream(is, length);
+                response.setData(data);
+                break;
+            default:
+                break;
         }
         return response;
     }
 
-    private byte[] readInputStream(InputStream is, int expectedLength) {
+    private byte[] readInputStream(InputStream is, int expectedLength) throws IOException {
         if(is == null) {
             return null;
         }
@@ -147,31 +145,25 @@ public class ProtocolHandler {
         return data;
     }
 
-    private byte[] readInputStreamBurstMode(InputStream is, int length) {
-
-        try {
-            byte[] data = new byte[length];
-            // changes per alaz
-            int off = 0;
-            int toRead = length;
-            while(toRead > 0) {
-                int readLength = is.read(data, off, toRead);
-                if(readLength == -1) {
-                    throw new BeanstalkException(String.format("The end of InputStream is reached - %d bytes expected, %d bytes read", length, off + readLength));
-                }
-                off += readLength;
-                toRead -= readLength;
+    private byte[] readInputStreamBurstMode(InputStream is, int length) throws IOException {
+        byte[] data = new byte[length];
+        // changes per alaz
+        int off = 0;
+        int toRead = length;
+        while(toRead > 0) {
+            int readLength = is.read(data, off, toRead);
+            if(readLength == -1) {
+                throw new BeanstalkException(String.format("The end of InputStream is reached - %d bytes expected, %d bytes read", length, off + readLength));
             }
-            byte br = (byte) is.read();
-            byte bn = (byte) is.read();
-            if(br != '\r' || bn != '\n') {
-                throw new BeanstalkException("The end of InputStream is reached - End of line expected, but not found");
-            }
-            return data;
-
-        } catch(IOException ex) {
-            throw new BeanstalkException(ex.getMessage());
+            off += readLength;
+            toRead -= readLength;
         }
+        byte br = (byte) is.read();
+        byte bn = (byte) is.read();
+        if(br != '\r' || bn != '\n') {
+            throw new BeanstalkException("The end of InputStream is reached - End of line expected, but not found");
+        }
+        return data;
     }
 
     /**
@@ -179,60 +171,64 @@ public class ProtocolHandler {
      * This must only be used for text lines in the protocol. Do you use this
      * for job data, since that would prevent binary data from being sent.
      */
-    private byte[] readInputStreamSlowMode(InputStream is) {
+    private byte[] readInputStreamSlowMode(InputStream is) throws IOException {
         boolean lastByteWasReturnByte = false;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        try {
-            while(true) {
-                int intB = is.read();
-                byte b = (byte) intB;
 
-                /**
-                 * prevent OutOfMemory exceptions, per leopoldkot
-                 */
-                if(intB == -1) {
-                    throw new BeanstalkException("The end of InputStream is reached");
-                }
+        while(true) {
+            int intB = is.read();
+            byte b = (byte) intB;
 
-                if (lastByteWasReturnByte) {
-                    if (b == '\n') {
-                        // End of line.
-                        break;
-                    }
-
-                    // Was lone \r.
-                    lastByteWasReturnByte = false;
-                    baos.write('\r');
-                }
-                if(b == '\r') {
-                    lastByteWasReturnByte = true;
-                } else {
-                    baos.write(b);
-                }
+            /**
+             * prevent OutOfMemory exceptions, per leopoldkot
+             */
+            if(intB == -1) {
+                throw new BeanstalkException("The end of InputStream is reached");
             }
-            return baos.toByteArray();
-        } catch(Exception e) {
-            throw new BeanstalkException(e.getMessage());
+
+            if (lastByteWasReturnByte) {
+                if (b == '\n') {
+                    // End of line.
+                    break;
+                }
+
+                // Was lone \r.
+                lastByteWasReturnByte = false;
+                baos.write('\r');
+            }
+            if(b == '\r') {
+                lastByteWasReturnByte = true;
+            } else {
+                baos.write(b);
+            }
         }
+
+        return baos.toByteArray();
     }
 
+    /**
+     * Make sure the request is okay before processing it.
+     *
+     * @throws NullPointerException if the request is null.
+     * @throws IllegalArgumentException if the contents of the request are not valid.
+     */
     private void validateRequest(Request request) {
         if(request == null) {
-            throw new BeanstalkException("null request");
+            throw new NullPointerException("null request");
         }
 
         String command = request.getCommand();
         if(command == null || command.length() == 0) {
-            throw new BeanstalkException("null or empty command");
+            throw new IllegalArgumentException("null or empty command");
         }
 
         String[] validStates = request.getValidStates();
         if(validStates == null || validStates.length == 0) {
-            throw new BeanstalkException("null or empty validStates");
+            throw new IllegalArgumentException("null or empty validStates");
         }
     }
 
-    private void setState(Request request, Response response, String status) {
+    private void setState(Request request, Response response, String status) throws BeanstalkException {
         for(String s : request.getValidStates()) {
             if(status.equals(s)) {
                 response.setMatchOk(true);
@@ -257,47 +253,43 @@ public class ProtocolHandler {
     /**
      * Parse a YAML map.
      */
-    private Map<String, String> parseForMap(InputStream is) {
+    private Map<String, String> parseForMap(InputStream is) throws IOException {
         Map<String, String> map = new LinkedHashMap<String, String>();
         String line = null;
-        try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(is));
-            while((line = in.readLine()) != null) {
-                if(line.length() == 0) {
-                    break;
-                }
-                String[] values = line.split(": ");
-                if(values.length != 2) {
-                    continue;
-                }
-                map.put(values[0], values[1]);
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(is));
+        while((line = in.readLine()) != null) {
+            if(line.length() == 0) {
+                break;
             }
-        } catch(Exception e) {
-            throw new BeanstalkException(e.getMessage());
+            String[] values = line.split(": ");
+            if(values.length != 2) {
+                continue;
+            }
+            map.put(values[0], values[1]);
         }
+
         return map;
     }
 
     /**
      * Parse a YAML list of string.
      */
-    private List<String> parseForList(InputStream is) {
+    private List<String> parseForList(InputStream is) throws IOException {
         List<String> list = new ArrayList<String>();
         String line = null;
-        try {
-            BufferedReader in = new BufferedReader(new InputStreamReader(is));
-            while((line = in.readLine()) != null) {
-                if(line.length() == 0) {
-                    break;
-                }
-                if(line.equals("---")) {
-                    continue;
-                }
-                list.add(line.substring(2));
+
+        BufferedReader in = new BufferedReader(new InputStreamReader(is));
+        while((line = in.readLine()) != null) {
+            if(line.length() == 0) {
+                break;
             }
-        } catch(Exception e) {
-            throw new BeanstalkException(e.getMessage());
+            if(line.equals("---")) {
+                continue;
+            }
+            list.add(line.substring(2));
         }
+
         return list;
     }
 
@@ -306,7 +298,7 @@ public class ProtocolHandler {
             try {
                 socket.close();
             } catch(Exception e) {
-                throw new BeanstalkException(e.getMessage());
+                // Swallow exception closing the socket.
             }
         }
     }
