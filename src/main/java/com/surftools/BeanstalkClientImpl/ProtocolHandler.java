@@ -44,7 +44,6 @@ public class ProtocolHandler {
         '\r', '\n'
     };
     private Socket socket;
-    private boolean useBlockIO = false;
 
     ProtocolHandler(String host, int port) {
         try {
@@ -134,7 +133,7 @@ public class ProtocolHandler {
 
         byte[] data;
 
-        if(expectedLength > 0 && useBlockIO) {
+        if(expectedLength > 0) {
             data = readInputStreamBurstMode(is, expectedLength);
         } else {
             data = readInputStreamSlowMode(is);
@@ -296,13 +295,5 @@ public class ProtocolHandler {
                 throw new BeanstalkException(e.getMessage());
             }
         }
-    }
-
-    public void setUseBlockIO(boolean useBlockIO) {
-        this.useBlockIO = useBlockIO;
-    }
-
-    public boolean isUseBlockIO() {
-        return useBlockIO;
     }
 }

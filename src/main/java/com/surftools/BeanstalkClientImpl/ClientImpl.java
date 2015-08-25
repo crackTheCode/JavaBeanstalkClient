@@ -63,16 +63,6 @@ public class ClientImpl implements Client {
         aProtocolHandler = new ProtocolHandler(host, port);
     }
 
-    public ClientImpl(boolean useBlockIO) {
-        this(DEFAULT_HOST, DEFAULT_PORT);
-        getProtocolHandler().setUseBlockIO(useBlockIO);
-    }
-
-    public ClientImpl(String host, int port, boolean useBlockIO) {
-        this(host, port);
-        getProtocolHandler().setUseBlockIO(useBlockIO);
-    }
-
     // ****************************************************************
     // Producer methods
     // ****************************************************************
