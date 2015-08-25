@@ -1,4 +1,4 @@
-# BeanstalkClient
+# Java Beanstalk Client
 
 This is a Java client for the [beanstalkd](http://kr.github.io/beanstalkd/)
 work queue broker. It is a fork of the version by
@@ -12,7 +12,7 @@ This version has the following changes:
 * Add build.xml file for Ant.
 * Always use block IO so that binary payloads can be used.
 * Convert unchecked exceptions to checked exceptions.
-* Remove ability to have thread local connections.
+* Remove ability to have thread-local connections.
 * Move to different package.
 
 I do not push my version to Maven Central.
