@@ -3,7 +3,7 @@
 This is a Java client for the [beanstalkd](http://kr.github.io/beanstalkd/)
 work queue broker. It is a fork of the version by
 [jpeffer](https://github.com/jpeffer/JavaBeanstalkClient),
-which itself was a fork from the version by
+which itself was a fork of the version by
 [RTykulsker](https://github.com/RTykulsker/JavaBeanstalkClient).
 
 This version has the following changes:
@@ -13,6 +13,7 @@ This version has the following changes:
 * Always use block IO so that binary payloads can be used.
 * Convert unchecked exceptions to checked exceptions.
 * Remove ability to have thread local connections.
+* Move to different package.
 
 I do not push my version to Maven Central.
 

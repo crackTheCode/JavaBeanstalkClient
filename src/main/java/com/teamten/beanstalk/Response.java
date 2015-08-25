@@ -1,4 +1,4 @@
-package com.surftools.BeanstalkClientImpl;
+package com.teamten.beanstalk;
 
 /*
  *

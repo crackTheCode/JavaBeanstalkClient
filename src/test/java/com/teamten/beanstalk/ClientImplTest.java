@@ -1,4 +1,4 @@
-package com.surftools.BeanstalkClientImpl;
+package com.teamten.beanstalk;
 
 /*
 
@@ -22,9 +22,6 @@ along with JavaBeanstalkCLient.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-import com.surftools.BeanstalkClient.BeanstalkException;
-import com.surftools.BeanstalkClient.Client;
-import com.surftools.BeanstalkClient.Job;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;

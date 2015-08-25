@@ -1,4 +1,4 @@
-package com.surftools.BeanstalkClientImpl;
+package com.teamten.beanstalk;
 
 /*
  *
@@ -22,9 +22,9 @@ package com.surftools.BeanstalkClientImpl;
  *
  */
 
-import com.surftools.BeanstalkClient.BeanstalkException;
-import com.surftools.BeanstalkClient.Client;
-import com.surftools.BeanstalkClient.Job;
+import com.teamten.beanstalk.BeanstalkException;
+import com.teamten.beanstalk.Client;
+import com.teamten.beanstalk.Job;
 
 import java.io.IOException;
 

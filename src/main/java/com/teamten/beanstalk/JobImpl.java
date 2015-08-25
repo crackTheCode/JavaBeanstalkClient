@@ -1,4 +1,4 @@
-package com.surftools.BeanstalkClientImpl;
+package com.teamten.beanstalk;
 
 /*
  *
@@ -21,47 +21,32 @@ package com.surftools.BeanstalkClientImpl;
  * along with JavaBeanstalkCLient. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+import com.teamten.beanstalk.Job;
 
 /**
- * Enumerates the types of responses that we expect from the server.
+ * A concrete implementation of a job.
  */
-public enum ExpectedResponse {
-    /**
-     * The command does not contain data.
-     */
-    None(0),
+public class JobImpl implements Job {
+    private byte[] data;
+    private long jobId;
 
-    /**
-     * The command contains raw data, such as a job.
-     */
-    ByteArray(1),
-
-    /**
-     * The command contains a YAML document with a list of strings.
-     */
-    List(2),
-
-    /**
-     * The command contains a YAML document with a map from string to string.
-     */
-    Map(3);
-
-    private int id = 0;
-
-    ExpectedResponse(int id) {
-        this.id = id;
+    public JobImpl(long jobId) {
+        this.jobId = jobId;
+        this.data = null;
     }
 
-    public int getId() {
-        return id;
+    @Override // Job
+    public byte[] getData() {
+        return data;
     }
 
-    public static ExpectedResponse getById(int id) {
-        for (ExpectedResponse t : values()) {
-            if (t.id == id) {
-                return t;
-            }
-        }
-        return null;
+    @Override // Job
+    public long getJobId() {
+        return jobId;
+    }
+
+    @Override // Job
+    public void setData(byte[] data) {
+        this.data = data;
     }
 }

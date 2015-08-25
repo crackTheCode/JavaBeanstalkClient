@@ -1,4 +1,4 @@
-package com.surftools.BeanstalkClient;
+package com.teamten.beanstalk;
 
 /*
  * Copyright 2009-2010 Robert Tykulsker *
