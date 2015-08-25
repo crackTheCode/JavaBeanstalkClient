@@ -1,3 +1,7 @@
+This is a fork of the original BeanstalkClient by jpeffer.
+
+The following is the original README
+----------------------------------------------------------------------------------------------
 This is a fork of the original BeanstalkClient by RTykulsker and is now in maven central. 
 
 To use, simply add the dependency to your POM:
