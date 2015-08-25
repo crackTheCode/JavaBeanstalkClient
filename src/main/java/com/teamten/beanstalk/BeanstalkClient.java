@@ -29,7 +29,7 @@ import java.util.Map;
 /**
  * Interface for the Beanstalk client.
  */
-public interface Client {
+public interface BeanstalkClient {
     /**
      * By default we connect to the localhost.
      */

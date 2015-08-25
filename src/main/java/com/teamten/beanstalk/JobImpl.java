@@ -26,7 +26,7 @@ import com.teamten.beanstalk.Job;
 /**
  * A concrete implementation of a job.
  */
-public class JobImpl implements Job {
+class JobImpl implements Job {
     private byte[] data;
     private long jobId;
 

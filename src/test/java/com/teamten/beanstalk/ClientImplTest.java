@@ -59,7 +59,7 @@ public class ClientImplTest extends TestCase {
 	 * ignore all currently watched tubes, retuned in ret[0] watch a new tube,
 	 * returned in ret[1]
 	 */
-	Object[] pushWatchedTubes(Client client) throws IOException {
+	Object[] pushWatchedTubes(BeanstalkClient client) throws IOException {
 		Object[] tubeNames = new Object[2];
 		List<String> list = client.listTubesWatched();
 		
@@ -77,7 +77,7 @@ public class ClientImplTest extends TestCase {
 	}
 
 	@SuppressWarnings("unchecked")
-	void popWatchedTubes(Client client, Object[] tubeNames) throws IOException {
+	void popWatchedTubes(BeanstalkClient client, Object[] tubeNames) throws IOException {
 		for (String tubeName : (List<String>) tubeNames[0]) {
 			client.watch(tubeName);
 		}
@@ -90,7 +90,7 @@ public class ClientImplTest extends TestCase {
 	// ****************************************************************
 
 	public void testGetServerVersion() throws IOException {
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 		
 		String serverVersion = client.getServerVersion();
 		assertNotNull(serverVersion);
@@ -109,7 +109,7 @@ public class ClientImplTest extends TestCase {
 	
 	public void testBinaryData() throws IOException {
 
-			Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+			BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
 			Object[] tubeNames = pushWatchedTubes(client);
 
@@ -143,7 +143,7 @@ public class ClientImplTest extends TestCase {
 
 	
 	public void testUseTube() throws IOException {
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 		client.useTube("foobar");
 		
 		// hashes are not valid in tube names
@@ -178,7 +178,7 @@ public class ClientImplTest extends TestCase {
 	
 	public void testPut() throws IOException {
 
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 		long jobId = client.put(65536, 0, 120, "testPut".getBytes());
 		assertTrue(jobId > 0);
 		client.delete(jobId);
@@ -226,7 +226,7 @@ public class ClientImplTest extends TestCase {
 
 	public void testReserve() throws IOException {
 
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
 		Object[] tubeNames = pushWatchedTubes(client);
 		
@@ -254,7 +254,7 @@ public class ClientImplTest extends TestCase {
 	
 	public void testReserveWithTimeout() throws IOException {
 
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
 		Object[] tubeNames = pushWatchedTubes(client);
 
@@ -299,7 +299,7 @@ public class ClientImplTest extends TestCase {
 	
 	public void testDelete() throws IOException {
 
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
 		Object[] tubeNames = pushWatchedTubes(client);
 
@@ -324,7 +324,7 @@ public class ClientImplTest extends TestCase {
 	
 	public void testRelease() throws IOException {
 
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
 		Object[] tubeNames = pushWatchedTubes(client);
 
@@ -366,7 +366,7 @@ public class ClientImplTest extends TestCase {
 	
 	public void testBuryKick() throws IOException {
 
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
 		Object[] tubeNames = pushWatchedTubes(client);
 
@@ -418,7 +418,7 @@ public class ClientImplTest extends TestCase {
 	
 	public void testTouch() throws IOException {
 
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
 		Object[] tubeNames = pushWatchedTubes(client);
 
@@ -467,7 +467,7 @@ public class ClientImplTest extends TestCase {
 	// stats-related
 	// ****************************************************************
 	public void testListTubeUsed() throws IOException {
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 		String s = client.listTubeUsed();
 		assertNotNull(s);
 
@@ -479,7 +479,7 @@ public class ClientImplTest extends TestCase {
 
 	
 	public void testListTubes() throws IOException {
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 		List<String> list = client.listTubes();
 		assertNotNull(list);
 
@@ -493,7 +493,7 @@ public class ClientImplTest extends TestCase {
 
 	
 	public void testListTubesWatched() throws IOException {
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 		List<String> list = client.listTubesWatched();
 		assertNotNull(list);
 		int initialWatchCount = list.size();
@@ -526,7 +526,7 @@ public class ClientImplTest extends TestCase {
 	
 
 	public void testStats() throws IOException {
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 		Map<String, String> map = client.stats();
 		assertNotNull(map);
 
@@ -541,7 +541,7 @@ public class ClientImplTest extends TestCase {
 
 	public void testStatsTube() throws IOException {
 
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
 		Map<String, String> map = client.statsTube(null);
 		assertNull(map);
@@ -578,7 +578,7 @@ public class ClientImplTest extends TestCase {
 
 	public void testStatsJob() throws IOException {
 
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
 		Map<String, String> map = client.statsJob(0);
 		assertNull(map);
@@ -617,7 +617,7 @@ public class ClientImplTest extends TestCase {
 	// ****************************************************************
 	public void testPeek() throws IOException {
 
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
 		Object[] tubeNames = pushWatchedTubes(client);
 		client.useTube((String) tubeNames[1]);
@@ -674,7 +674,7 @@ public class ClientImplTest extends TestCase {
 	
 	public void testReady() throws IOException {
 
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
 		Object[] tubeNames = pushWatchedTubes(client);
 		client.useTube((String) tubeNames[1]);
@@ -720,7 +720,7 @@ public class ClientImplTest extends TestCase {
 	
 	public void testDelayed() throws IOException {
 
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
 		Object[] tubeNames = pushWatchedTubes(client);
 		client.useTube((String) tubeNames[1]);
@@ -762,7 +762,7 @@ public class ClientImplTest extends TestCase {
 	
 	public void testBuried() throws IOException {
 
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
 		Object[] tubeNames = pushWatchedTubes(client);
 		client.useTube((String) tubeNames[1]);
@@ -803,7 +803,7 @@ public class ClientImplTest extends TestCase {
 	}
 	
 	public void testClose() throws IOException {
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 		String s = client.listTubeUsed();
 		assertNotNull(s);
 
@@ -836,7 +836,7 @@ public class ClientImplTest extends TestCase {
 		String remoteHost = TEST_HOST;
 		int nIterations = 100;
 		for (int i = 0; i < nIterations; ++i) {
-				Client client = new ClientImpl(remoteHost, TEST_PORT);
+				BeanstalkClient client = new BeanstalkClientImpl(remoteHost, TEST_PORT);
 
 				Object[] tubeNames = pushWatchedTubes(client);
 
@@ -865,7 +865,7 @@ public class ClientImplTest extends TestCase {
 	}
 	
 	public void testNullArgs() throws IOException {
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
 		try {
 			client.ignore(null);
@@ -896,7 +896,7 @@ public class ClientImplTest extends TestCase {
 	}
 	
 	public void testPutPerformance() throws IOException {
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 		
 		Object[] tubeNames = pushWatchedTubes(client);
 		client.useTube((String) tubeNames[1]);
@@ -918,7 +918,7 @@ public class ClientImplTest extends TestCase {
 	
 	
 	public void testIgnoreDefaultTube() throws IOException {
-		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+		BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 		
 		final String DEFAULT_TUBE = "default";
 		List<String> tubeNames = client.listTubesWatched();
@@ -931,7 +931,7 @@ public class ClientImplTest extends TestCase {
 
     public void testPauseTube() throws IOException {
 
-        Client client = new ClientImpl(TEST_HOST, TEST_PORT);
+        BeanstalkClient client = new BeanstalkClientImpl(TEST_HOST, TEST_PORT);
 
         Object[] tubeNames = pushWatchedTubes(client);
         client.useTube((String) tubeNames[1]);

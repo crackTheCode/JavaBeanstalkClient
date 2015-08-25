@@ -25,7 +25,7 @@ package com.teamten.beanstalk;
 /**
  * Encapsulates a request to the server.
  */
-public class Request {
+class Request {
 
     private String command;
     private String[] validStates;

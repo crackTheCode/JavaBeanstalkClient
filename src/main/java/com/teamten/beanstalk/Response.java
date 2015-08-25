@@ -25,7 +25,7 @@ package com.teamten.beanstalk;
 /**
  * Encapsulates a response from the server.
  */
-public class Response {
+class Response {
 
     private String status;
     private String reponse;

@@ -25,7 +25,7 @@ package com.teamten.beanstalk;
 /**
  * Enumerates the types of responses that we expect from the server.
  */
-public enum ExpectedResponse {
+enum ExpectedResponse {
     /**
      * The command does not contain data.
      */

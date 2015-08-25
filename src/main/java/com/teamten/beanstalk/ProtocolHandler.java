@@ -41,8 +41,7 @@ import java.util.Map;
 /**
  * Communicates with the server.
  */
-public class ProtocolHandler {
-
+class ProtocolHandler {
     private static final byte[] CRLF = {
         '\r', '\n'
     };
