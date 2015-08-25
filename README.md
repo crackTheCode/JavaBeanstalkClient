@@ -12,6 +12,7 @@ This version has the following changes:
 * Add build.xml file for Ant.
 * Always use block IO so that binary payloads can be used.
 * Convert unchecked exceptions to checked exceptions.
+* Remove ability to have thread local connections.
 
 I do not push my version to Maven Central.
 
