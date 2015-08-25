@@ -418,16 +418,6 @@ public interface Client {
     public void close();
 
     /**
-     * Get whether this client creates one connection per thread or one shared connection.
-     */
-    public boolean isUniqueConnectionPerThread();
-
-    /**
-     * Set whether this client creates one connection per thread or one shared connection.
-     */
-    public void setUniqueConnectionPerThread(boolean uniqueConnectionPerThread);
-
-    /**
      * Pause a tube. There's no documentation for this command in the protocol.
      *
      * @param tubeName The tube to pause.
