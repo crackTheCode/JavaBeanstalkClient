@@ -31,7 +31,7 @@ import java.util.Map;
  * Concrete implementation of the Client interface.
  */
 public class ClientImpl implements Client {
-    private static final String VERSION = "1.4.6";
+    private static final String CLIENT_VERSION = "1.4.6";
     private static final long MAX_PRIORITY = 4294967296L;
     private String host;
     private int port;
@@ -438,7 +438,7 @@ public class ClientImpl implements Client {
 
     @Override // Client
     public String getClientVersion() {
-        return VERSION;
+        return CLIENT_VERSION;
     }
 
     @Override // Client

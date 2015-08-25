@@ -127,8 +127,7 @@ public class ClientImplTest extends TestCase {
 	
 	public void testBinaryData() {
 
-		for (boolean useBlockIO : new boolean[] { false, true }) {
-			Client client = new ClientImpl(TEST_HOST, TEST_PORT, useBlockIO);
+			Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
 			Object[] tubeNames = pushWatchedTubes(client);
 
@@ -158,7 +157,6 @@ public class ClientImplTest extends TestCase {
 			client.delete(job.getJobId());
 
 			popWatchedTubes(client, tubeNames);
-		}
 	}
 
 	
@@ -858,11 +856,7 @@ public class ClientImplTest extends TestCase {
 		String remoteHost = TEST_HOST;
 		int nIterations = 100;
 		for (int i = 0; i < nIterations; ++i) {
-			Set<Boolean> blockModes = new HashSet<Boolean>(Arrays
-					.asList(new Boolean[] { false, true }));
-			for (boolean useBlockIO : blockModes) {
-				Client client = new ClientImpl(remoteHost, TEST_PORT,
-						useBlockIO);
+				Client client = new ClientImpl(remoteHost, TEST_PORT);
 
 				Object[] tubeNames = pushWatchedTubes(client);
 
@@ -887,7 +881,6 @@ public class ClientImplTest extends TestCase {
 				popWatchedTubes(client, tubeNames);
 				
 				client.close();
-			}
 		}
 	}
 	

@@ -106,13 +106,19 @@ public class ProtocolHandler {
                     if(response.isMatchError()) {
                         break;
                     }
-                    int length = 0;
-                    if(request.getExpectedDataLengthIndex() > 0 && tokens.length > request.getExpectedDataLengthIndex()) {
-                        try {
-                            length = Integer.parseInt(tokens[request.getExpectedDataLengthIndex()]);
-                        } catch(NumberFormatException ex) {
-                            length = 0;
+                    int length;
+                    if(request.getExpectedDataLengthIndex() > 0) {
+                        if (request.getExpectedDataLengthIndex() >= tokens.length) {
+                            throw new BeanstalkException("length missing from response line");
                         }
+                        String lengthStr = tokens[request.getExpectedDataLengthIndex()];
+                        try {
+                            length = Integer.parseInt(lengthStr);
+                        } catch(NumberFormatException ex) {
+                            throw new BeanstalkException("could not parse response length \"" + lengthStr + "\"");
+                        }
+                    } else {
+                        length = 0;
                     }
                     byte[] data = readInputStream(is, length);
                     response.setData(data);
@@ -147,14 +153,14 @@ public class ProtocolHandler {
             byte[] data = new byte[length];
             // changes per alaz
             int off = 0;
-            int toRead = length - off;
+            int toRead = length;
             while(toRead > 0) {
                 int readLength = is.read(data, off, toRead);
                 if(readLength == -1) {
                     throw new BeanstalkException(String.format("The end of InputStream is reached - %d bytes expected, %d bytes read", length, off + readLength));
                 }
                 off += readLength;
-                toRead = length - off;
+                toRead -= readLength;
             }
             byte br = (byte) is.read();
             byte bn = (byte) is.read();
@@ -168,6 +174,11 @@ public class ProtocolHandler {
         }
     }
 
+    /**
+     * This routine reads from the input stream until a \r\n pair is found.
+     * This must only be used for text lines in the protocol. Do you use this
+     * for job data, since that would prevent binary data from being sent.
+     */
     private byte[] readInputStreamSlowMode(InputStream is) {
         boolean lastByteWasReturnByte = false;
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -183,16 +194,19 @@ public class ProtocolHandler {
                     throw new BeanstalkException("The end of InputStream is reached");
                 }
 
-                if(b == '\n' && lastByteWasReturnByte) {
-                    break;
+                if (lastByteWasReturnByte) {
+                    if (b == '\n') {
+                        // End of line.
+                        break;
+                    }
+
+                    // Was lone \r.
+                    lastByteWasReturnByte = false;
+                    baos.write('\r');
                 }
                 if(b == '\r') {
                     lastByteWasReturnByte = true;
                 } else {
-                    if(lastByteWasReturnByte) {
-                        lastByteWasReturnByte = false;
-                        baos.write('\r');
-                    }
                     baos.write(b);
                 }
             }
