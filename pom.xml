@@ -1,12 +1,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>com.surftools</groupId>
+    <groupId>com.teamten</groupId>
     <artifactId>BeanstalkClient</artifactId>
     <version>1.4.7-SNAPSHOT</version>
     <packaging>jar</packaging>    
     <name>BeanstalkClient</name>
     <description>BeanstalkClient is a Beanstalkd Java client</description>
-    <url>https://github.com/jpeffer/JavaBeanstalkClient</url>
+    <url>https://github.com/lkesteloot/JavaBeanstalkClient</url>
     <parent>
         <groupId>org.sonatype.oss</groupId>
         <artifactId>oss-parent</artifactId>
@@ -25,9 +25,9 @@
         </license>            
     </licenses>
     <scm>
-        <url>https://github.com/jpeffer/JavaBeanstalkClient</url>
-        <connection>scm:git:https://github.com/jpeffer/JavaBeanstalkClient.git</connection>
-        <developerConnection>scm:git:https://github.com/jpeffer/JavaBeanstalkClient.git</developerConnection>
+        <url>https://github.com/lkesteloot/JavaBeanstalkClient</url>
+        <connection>scm:git:https://github.com/lkesteloot/JavaBeanstalkClient.git</connection>
+        <developerConnection>scm:git:https://github.com/lkesteloot/JavaBeanstalkClient.git</developerConnection>
     </scm>
     <dependencies>
         <dependency>

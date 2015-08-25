@@ -22,12 +22,15 @@ along with JavaBeanstalkCLient.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+import java.io.IOException;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -56,7 +59,7 @@ public class ClientImplTest extends TestCase {
 	 * ignore all currently watched tubes, retuned in ret[0] watch a new tube,
 	 * returned in ret[1]
 	 */
-	Object[] pushWatchedTubes(Client client) {
+	Object[] pushWatchedTubes(Client client) throws IOException {
 		Object[] tubeNames = new Object[2];
 		List<String> list = client.listTubesWatched();
 		
@@ -74,7 +77,7 @@ public class ClientImplTest extends TestCase {
 	}
 
 	@SuppressWarnings("unchecked")
-	void popWatchedTubes(Client client, Object[] tubeNames) {
+	void popWatchedTubes(Client client, Object[] tubeNames) throws IOException {
 		for (String tubeName : (List<String>) tubeNames[0]) {
 			client.watch(tubeName);
 		}
@@ -82,47 +85,29 @@ public class ClientImplTest extends TestCase {
 		client.ignore((String) tubeNames[1]);
 	}
 	
-	private boolean serverSupportsUnderscoreInTubeName(Client client) {
-		assertNotNull(client);
-		
-		String serverVersion = client.getServerVersion();
-		assertNotNull(serverVersion);
-		String[] tokens = serverVersion.split("\\.");
-		assertEquals(3, tokens.length);
-		
-		int majorVersion = Integer.parseInt(tokens[0]);
-		int minorVersion = Integer.parseInt(tokens[1]);
-		int dotVersion = Integer.parseInt(tokens[2]);
-		
-		if (majorVersion >= 1 && minorVersion >= 4 && dotVersion >= 4) {
-			return true;
-		}
-		
-		return false;
-	}
-
 	// ****************************************************************
 	// Producer methods
 	// ****************************************************************
 
-	public void testGetServerVersion() {
+	public void testGetServerVersion() throws IOException {
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 		
 		String serverVersion = client.getServerVersion();
 		assertNotNull(serverVersion);
 		String[] tokens = serverVersion.split("\\.");
-		assertEquals(3, tokens.length);
-		
-		int majorVersion = Integer.parseInt(tokens[0]);
-		int minorVersion = Integer.parseInt(tokens[1]);
-		int dotVersion = Integer.parseInt(tokens[2]);
-		assertTrue(majorVersion >= 1);
-		assertTrue(minorVersion >= 4);
-		assertTrue(dotVersion >= 4);		
+
+                if (tokens.length >= 2) {
+                    int majorVersion = Integer.parseInt(tokens[0]);
+                    int minorVersion = Integer.parseInt(tokens[1]);
+                    assertTrue(majorVersion >= 1);
+                    assertTrue(minorVersion >= 4);
+                } else {
+                    fail("server version has bad format: " + serverVersion);
+                }
 	}
 
 	
-	public void testBinaryData() {
+	public void testBinaryData() throws IOException {
 
 			Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
@@ -157,7 +142,7 @@ public class ClientImplTest extends TestCase {
 	}
 
 	
-	public void testUseTube() {
+	public void testUseTube() throws IOException {
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 		client.useTube("foobar");
 		
@@ -172,12 +157,10 @@ public class ClientImplTest extends TestCase {
 		}
 
 		// underscores are valid in tube names >= beanstalk 1.4.4.
-		if (serverSupportsUnderscoreInTubeName(client)) {
-			try {
-				client.useTube("foobar_");
-			} catch (Exception e) {
-				fail(e.getMessage());
-			}
+                try {
+                        client.useTube("foobar_");
+                } catch (Exception e) {
+                        fail(e.getMessage());
 		}
 		
 		// per pashields http://github.com/pashields/JavaBeanstalkClient.git
@@ -193,7 +176,7 @@ public class ClientImplTest extends TestCase {
 	}
 
 	
-	public void testPut() {
+	public void testPut() throws IOException {
 
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 		long jobId = client.put(65536, 0, 120, "testPut".getBytes());
@@ -218,7 +201,7 @@ public class ClientImplTest extends TestCase {
 					.getBytes());
 			client.delete(jobId);
 			fail("no UNKNOWN_COMMAND thrown");
-		} catch (BeanstalkException be) {
+		} catch (IllegalArgumentException be) {
 			assertEquals("invalid priority", be.getMessage());
 		} catch (Exception e) {
 			fail(e.getMessage());
@@ -229,7 +212,7 @@ public class ClientImplTest extends TestCase {
 			jobId = client.put(65536, 0, 120, null);
 			client.delete(jobId);
 			fail("no exception");
-		} catch (BeanstalkException be) {
+		} catch (NullPointerException be) {
 			assertEquals("null data", be.getMessage());
 		} catch (Exception e) {
 			fail(e.getMessage());
@@ -241,7 +224,7 @@ public class ClientImplTest extends TestCase {
 	// job-related
 	// ****************************************************************
 
-	public void testReserve() {
+	public void testReserve() throws IOException {
 
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
@@ -269,7 +252,7 @@ public class ClientImplTest extends TestCase {
 	}
 
 	
-	public void testReserveWithTimeout() {
+	public void testReserveWithTimeout() throws IOException {
 
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
@@ -314,7 +297,7 @@ public class ClientImplTest extends TestCase {
 	}
 
 	
-	public void testDelete() {
+	public void testDelete() throws IOException {
 
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
@@ -339,7 +322,7 @@ public class ClientImplTest extends TestCase {
 	}
 
 	
-	public void testRelease() {
+	public void testRelease() throws IOException {
 
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
@@ -381,7 +364,7 @@ public class ClientImplTest extends TestCase {
 	}
 
 	
-	public void testBuryKick() {
+	public void testBuryKick() throws IOException {
 
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
@@ -433,7 +416,7 @@ public class ClientImplTest extends TestCase {
 	}
 
 	
-	public void testTouch() {
+	public void testTouch() throws IOException {
 
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
@@ -483,7 +466,7 @@ public class ClientImplTest extends TestCase {
 	// Consumer methods
 	// stats-related
 	// ****************************************************************
-	public void testListTubeUsed() {
+	public void testListTubeUsed() throws IOException {
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 		String s = client.listTubeUsed();
 		assertNotNull(s);
@@ -495,7 +478,7 @@ public class ClientImplTest extends TestCase {
 	}
 
 	
-	public void testListTubes() {
+	public void testListTubes() throws IOException {
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 		List<String> list = client.listTubes();
 		assertNotNull(list);
@@ -509,7 +492,7 @@ public class ClientImplTest extends TestCase {
 	}
 
 	
-	public void testListTubesWatched() {
+	public void testListTubesWatched() throws IOException {
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 		List<String> list = client.listTubesWatched();
 		assertNotNull(list);
@@ -542,7 +525,7 @@ public class ClientImplTest extends TestCase {
 	}
 	
 
-	public void testStats() {
+	public void testStats() throws IOException {
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 		Map<String, String> map = client.stats();
 		assertNotNull(map);
@@ -556,7 +539,7 @@ public class ClientImplTest extends TestCase {
 	}
 	
 
-	public void testStatsTube() {
+	public void testStatsTube() throws IOException {
 
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
@@ -593,7 +576,7 @@ public class ClientImplTest extends TestCase {
 	}
 	
 
-	public void testStatsJob() {
+	public void testStatsJob() throws IOException {
 
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
@@ -632,7 +615,7 @@ public class ClientImplTest extends TestCase {
 	// Consumer methods
 	// peek-related
 	// ****************************************************************
-	public void testPeek() {
+	public void testPeek() throws IOException {
 
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
@@ -689,7 +672,7 @@ public class ClientImplTest extends TestCase {
 	}
 
 	
-	public void testReady() {
+	public void testReady() throws IOException {
 
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
@@ -735,7 +718,7 @@ public class ClientImplTest extends TestCase {
 	}
 	
 	
-	public void testDelayed() {
+	public void testDelayed() throws IOException {
 
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
@@ -777,7 +760,7 @@ public class ClientImplTest extends TestCase {
 	}
 	
 	
-	public void testBuried() {
+	public void testBuried() throws IOException {
 
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
@@ -819,7 +802,7 @@ public class ClientImplTest extends TestCase {
 		popWatchedTubes(client, tubeNames);
 	}
 	
-	public void testClose() {
+	public void testClose() throws IOException {
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 		String s = client.listTubeUsed();
 		assertNotNull(s);
@@ -828,7 +811,7 @@ public class ClientImplTest extends TestCase {
 		try {
 			client.listTubeUsed();
 			fail("didn't throw expected exception");
-		} catch (BeanstalkException be) {
+		} catch (IOException be) {
 			String message = be.getMessage();
 			assertEquals("Socket is closed", message);
 		} catch (Exception e) {
@@ -840,7 +823,7 @@ public class ClientImplTest extends TestCase {
 		try {
 			client.listTubeUsed();
 			fail("didn't throw expected exception");
-		} catch (BeanstalkException be) {
+		} catch (IOException be) {
 			String message = be.getMessage();
 			assertEquals("Socket is closed", message);
 		} catch (Exception e) {
@@ -848,7 +831,7 @@ public class ClientImplTest extends TestCase {
 		}
 	}
 
-	public void testUseBlockIO() {
+	public void testUseBlockIO() throws IOException {
 
 		String remoteHost = TEST_HOST;
 		int nIterations = 100;
@@ -881,13 +864,13 @@ public class ClientImplTest extends TestCase {
 		}
 	}
 	
-	public void testNullArgs() {
+	public void testNullArgs() throws IOException {
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
 		try {
 			client.ignore(null);
 			fail ("didn't throw");
-		} catch (BeanstalkException be ) {
+		} catch (NullPointerException be ) {
 			assertEquals("null tubeName", be.getMessage());
 		} catch (Exception e) {
 			fail("caught unexpected exception: " + e.getClass().getCanonicalName() + ", " + e.getMessage() );
@@ -896,7 +879,7 @@ public class ClientImplTest extends TestCase {
 		try {
 			client.useTube(null);
 			fail ("didn't throw");
-		} catch (BeanstalkException be ) {
+		} catch (NullPointerException be ) {
 			assertEquals("null tubeName", be.getMessage());
 		} catch (Exception e) {
 			fail("caught unexpected exception: " + e.getClass().getCanonicalName() + ", " + e.getMessage() );
@@ -905,14 +888,14 @@ public class ClientImplTest extends TestCase {
 		try {
 			client.watch(null);
 			fail ("didn't throw");
-		} catch (BeanstalkException be ) {
+		} catch (NullPointerException be ) {
 			assertEquals("null tubeName", be.getMessage());
 		} catch (Exception e) {
 			fail("caught unexpected exception: " + e.getClass().getCanonicalName() + ", " + e.getMessage() );
 		}
 	}
 	
-	public void testPutPerformance() {
+	public void testPutPerformance() throws IOException {
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 		
 		Object[] tubeNames = pushWatchedTubes(client);
@@ -934,7 +917,7 @@ public class ClientImplTest extends TestCase {
 	}
 	
 	
-	public void testIgnoreDefaultTube() {
+	public void testIgnoreDefaultTube() throws IOException {
 		Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 		
 		final String DEFAULT_TUBE = "default";
@@ -946,7 +929,7 @@ public class ClientImplTest extends TestCase {
 		assertEquals(-1, watchCount);
 	}
 
-    public void testPauseTube() {
+    public void testPauseTube() throws IOException {
 
         Client client = new ClientImpl(TEST_HOST, TEST_PORT);
 
