@@ -25,25 +25,28 @@ import com.surftools.BeanstalkClient.Job;
 
 public class JobImpl implements Job
 {
-
     private byte[] data;
     private long jobId;
 
     public JobImpl(long jobId)
     {
         this.jobId = jobId;
+        this.data = null;
     }
 
+    @Override // Job
     public byte[] getData()
     {
         return data;
     }
 
+    @Override // Job
     public long getJobId()
     {
         return jobId;
     }
 
+    @Override // Job
     public void setData(byte[] data)
     {
         this.data = data;

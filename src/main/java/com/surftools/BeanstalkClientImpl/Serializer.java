@@ -29,9 +29,15 @@ import java.io.Serializable;
 
 import com.surftools.BeanstalkClient.BeanstalkException;
 
+/**
+ * Utility classes for serializing Serializable objects to byte arrays, for putting
+ * into and getting out of jobs.
+ */
 public class Serializer
 {
-
+    /**
+     * Serialize an object to a byte array.
+     */
     public static byte[] serializableToByteArray(Serializable serializable)
     {
         byte[] bytes;
@@ -54,6 +60,9 @@ public class Serializer
         return bytes;
     }
 
+    /**
+     * Deserialize a byte array into an object.
+     */
     public static Serializable byteArrayToSerializable(byte[] bytes)
     {
         Serializable serializable = null;

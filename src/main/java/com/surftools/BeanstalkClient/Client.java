@@ -1,7 +1,6 @@
 package com.surftools.BeanstalkClient;
 
 /*
- *
  * Copyright 2009-2010 Robert Tykulsker *
  * This file is part of JavaBeanstalkCLient.
  *
@@ -25,18 +24,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
- * @author Robert Tykulsker
+ * Interface for the Beanstalk client.
  */
-public interface Client
-{
-
+public interface Client {
     /**
-     *
+     * By default we connect to the localhost.
      */
     public final String DEFAULT_HOST = "localhost";
     /**
-     *
+     * The server uses this port by default.
      */
     public final int DEFAULT_PORT = 11300;
 
@@ -45,19 +41,24 @@ public interface Client
     // ****************************************************************
     
     /**
+     * Put a message into a tube.
      *
-     * @param priority
-     * @param delaySeconds
-     * @param timeToRun
-     * @param data
+     * @param priority A number between 0 (most urgent) inclusive and 2**32
+     * (least urgent) exclusive.
+     * @param delaySeconds The number of seconds to wait before delivering
+     * the job.
+     * @param timeToRun The number of seconds that the worker has to perform
+     * the job.
+     * @param data The raw data for the message.
      *
-     * @return
+     * @return the job ID.
      */
     public long put(long priority, int delaySeconds, int timeToRun, byte[] data);
 
     /**
+     * Specify which tube to put future jobs into.
      *
-     * @param tubeName
+     * @param tubeName Which tube to put jobs into. If not specified, defaults to "default".
      */
     public void useTube(String tubeName);
 
@@ -67,45 +68,57 @@ public interface Client
     // ****************************************************************
     
     /**
+     * Pull a job out of any tube that we're watching.
      *
-     * @param timeoutSeconds
+     * @param timeoutSeconds The number of seconds to wait for a job to be ready
+     * for us. Specify null to mean "indefinitely" or 0 to return immediately if
+     * no jobs are available.
      *
-     * @return
+     * @return The reserved job. Never null.
      */
     public Job reserve(Integer timeoutSeconds);
 
     /**
+     * Delete a job by ID.
      *
-     * @param jobId
+     * @param jobId The job to delete.
      *
-     * @return
+     * @return Whether the job was found.
      */
     public boolean delete(long jobId);
 
     /**
+     * To release a job that was reserved. This puts it back into the ready queue 
+     * (if delaySeconds is 0) or the delayed queue (if not).
      *
-     * @param jobId
-     * @param priority
-     * @param delaySeconds
+     * @param jobId The job to release.
+     * @param priority The new priority of the job, between 0 (most
+     * urgent) inclusive and 2**32 (least urgent) exclusive.
+     * @param delaySeconds How many seconds to wait before delivering the job.
      *
-     * @return
+     * @return Whether the job was found.
      */
     public boolean release(long jobId, long priority, int delaySeconds);
 
     /**
+     * Bury the job after being reserved. This is useful for jobs that cause errors
+     * and that should be inspected before being issued (released) again.
      *
-     * @param jobId
-     * @param priority
+     * @param jobId The job to bury.
+     * @param priority The new priority of the job, between 0 (most
+     * urgent) inclusive and 2**32 (least urgent) exclusive.
      *
-     * @return
+     * @return Whether the job was found.
      */
     public boolean bury(long jobId, long priority);
 
     /**
+     * Touch a reserved job, to tell the server that you're still working on it
+     * and it shouldn't expire it.
      *
-     * @param jobId
+     * @param jobId The job to touch.
      *
-     * @return
+     * @return Whether the job was found.
      */
     public boolean touch(long jobId);
 
@@ -115,18 +128,23 @@ public interface Client
     // ****************************************************************
     
     /**
+     * Add the tube to the watch list. A subsequent "reserve" will pull
+     * from watched tubes.
      *
-     * @param tubeName
+     * @param tubeName The tube to watch.
      *
-     * @return
+     * @return The number of tubes in the watch list (after this command).
      */
     public int watch(String tubeName);
 
     /**
+     * Remove a tube from the watch list. The client is not permitted to
+     * ignore the last tube they're watching.
      *
-     * @param tubeName
+     * @param tubeName The tube to ignore.
      *
-     * @return -1, for NOT_IGNORED response in an attempt for a single tube
+     * @return The number of tubes in the watch list (after this command), or
+     * -1 if the client tried to remove the last tube.
      */
     public int ignore(String tubeName);
 
@@ -136,36 +154,43 @@ public interface Client
     // ****************************************************************
     
     /**
+     * Fetches the specified job, but does not remove it from any queue.
      *
-     * @param jobId
+     * @param jobId The job to peek.
      *
-     * @return
+     * @return The job, or null if not found.
      */
     public Job peek(long jobId);
 
     /**
+     * Fetches the next ready job, in other words, the job that reserve()
+     * would have returned.
      *
-     * @return
+     * @return The next ready job, or null if there are none.
      */
     public Job peekReady();
 
     /**
+     * Fetches the delayed job with the shortest delay left.
      *
-     * @return
+     * @return The next delayed job, or null if there are none.
      */
     public Job peekDelayed();
 
     /**
+     * Fetches the next job in the bury list.
      *
-     * @return
+     * @return The next buried job, or null if there are none.
      */
     public Job peekBuried();
 
     /**
+     * In the currently "used" tube, kicks buried jobs. If there are
+     * no buried jobs, kicks delayed jobs.
      *
-     * @param count
+     * @param count The maximum number of jobs to kick.
      *
-     * @return
+     * @return The number of jobs that were kicked.
      */
     public int kick(int count);
 
@@ -175,42 +200,135 @@ public interface Client
      ****************************************************************
     
     /**
+     * Get statistics about a job.
      *
-     * @param jobId
+     * @param jobId The job whose statistics you want.
      *
-     * @return
+     * @return A map with the following fields:
+     *
+     * <ul>
+     *   <li>"id" is the job id</li>
+     *   <li>"tube" is the name of the tube that contains this job</li>
+     *   <li>"state" is "ready" or "delayed" or "reserved" or "buried"</li>
+     *   <li>"pri" is the priority value set by the put, release, or bury commands.</li>
+     *   <li>"age" is the time in seconds since the put command that created this job.</li>
+     *   <li>"time-left" is the number of seconds left until the server puts this job
+       into the ready queue. This number is only meaningful if the job is
+       reserved or delayed. If the job is reserved and this amount of time
+       elapses before its state changes, it is considered to have timed out.</li>
+     *   <li>"timeouts" is the number of times this job has timed out during a
+       reservation.</li>
+     *   <li>"releases" is the number of times a client has released this job from a
+       reservation.</li>
+     *   <li>"buries" is the number of times this job has been buried.</li>
+     *   <li>"kicks" is the number of times this job has been kicked.</li>
+     </ul>
      */
     public Map<String, String> statsJob(long jobId);
 
     /**
+     * Get statistics about a tube.
      *
-     * @param tubeName
+     * @param tubeName The tube whose statistics you want.
      *
-     * @return
+     * @return A map with the following fields:
+     *
+     * <ul>
+     *   <li>"name" is the tube's name.</li>
+     *   <li>"current-jobs-urgent" is the number of ready jobs with priority
+     *   less than 1024 in this tube.</li>
+     *   <li>"current-jobs-ready" is the number of jobs in the ready queue in this tube.</li>
+     *   <li>"current-jobs-reserved" is the number of jobs reserved by all
+     *   clients in this tube.</li>
+     *   <li>"current-jobs-delayed" is the number of delayed jobs in this tube.</li>
+     *   <li>"current-jobs-buried" is the number of buried jobs in this tube.</li>
+     *   <li>"total-jobs" is the cumulative count of jobs created in this tube.</li>
+     *   <li>"current-waiting" is the number of open connections that have
+     *   issued a reserve command while watching this tube but not yet received
+     *   a response.</li>
+     * </ul>
+
      */
     public Map<String, String> statsTube(String tubeName);
 
     /**
+     * Get statistics about the server.
      *
-     * @return
+     * @return A map with the following fields:
+     *
+     * <ul>
+     *   <li>"current-jobs-urgent" is the number of ready jobs with priority less than 1024.</li>
+     *   <li>"current-jobs-ready" is the number of jobs in the ready queue.</li>
+     *   <li>"current-jobs-reserved" is the number of jobs reserved by all clients.</li>
+     *   <li>"current-jobs-delayed" is the number of delayed jobs.</li>
+     *   <li>"current-jobs-buried" is the number of buried jobs.</li>
+     *   <li>"cmd-put" is the cumulative number of put commands.</li>
+     *   <li>"cmd-peek" is the cumulative number of peek commands.</li>
+     *   <li>"cmd-peek-ready" is the cumulative number of peek-ready commands.</li>
+     *   <li>"cmd-peek-delayed" is the cumulative number of peek-delayed commands.</li>
+     *   <li>"cmd-peek-buried" is the cumulative number of peek-buried commands.</li>
+     *   <li>"cmd-reserve" is the cumulative number of reserve commands.</li>
+     *   <li>"cmd-use" is the cumulative number of use commands.</li>
+     *   <li>"cmd-watch" is the cumulative number of watch commands.</li>
+     *   <li>"cmd-ignore" is the cumulative number of ignore commands.</li>
+     *   <li>"cmd-delete" is the cumulative number of delete commands.</li>
+     *   <li>"cmd-release" is the cumulative number of release commands.</li>
+     *   <li>"cmd-bury" is the cumulative number of bury commands.</li>
+     *   <li>"cmd-kick" is the cumulative number of kick commands.</li>
+     *   <li>"cmd-stats" is the cumulative number of stats commands.</li>
+     *   <li>"cmd-stats-job" is the cumulative number of stats-job commands.</li>
+     *   <li>"cmd-stats-tube" is the cumulative number of stats-tube commands.</li>
+     *   <li>"cmd-list-tubes" is the cumulative number of list-tubes commands.</li>
+     *   <li>"cmd-list-tube-used" is the cumulative number of list-tube-used commands.</li>
+     *   <li>"cmd-list-tubes-watched" is the cumulative number of
+     *   list-tubes-watched commands.</li>
+     *   <li>"job-timeouts" is the cumulative count of times a job has timed out.</li>
+     *   <li>"total-jobs" is the cumulative count of jobs created.</li>
+     *   <li>"max-job-size" is the maximum number of bytes in a job.</li>
+     *   <li>"current-tubes" is the number of currently-existing tubes.</li>
+     *   <li>"current-connections" is the number of currently open connections.</li>
+     *   <li>"current-producers" is the number of open connections that have
+     *   each issued at least one put command.</li>
+     *   <li>"current-workers" is the number of open connections that have each
+     *   issued at least one reserve command.</li>
+     *   <li>"current-waiting" is the number of open connections that have
+     *   issued a reserve command but not yet received a response.</li>
+     *   <li>"total-connections" is the cumulative count of connections.</li>
+     *   <li>"pid" is the process id of the server.</li>
+     *   <li>"version" is the version string of the server.</li>
+     *   <li>"rusage-utime" is the accumulated user CPU time of this process in
+     *   seconds and microseconds.</li>
+     *   <li>"rusage-stime" is the accumulated system CPU time of this process
+     *   in seconds and microseconds.</li>
+     *   <li>"uptime" is the number of seconds since this server started running.</li>
+     *   <li>"binlog-oldest-index" is the index of the oldest binlog file
+     *   needed to store the current jobs</li>
+     *   <li>"binlog-current-index" is the index of the current binlog file
+     *   being written to. If binlog is not active this value will be 0</li>
+     *   <li>"binlog-max-size" is the maximum size in bytes a binlog file is
+     *   allowed to get before a new binlog file is opened</li>
+     * </ul>
      */
     public Map<String, String> stats();
 
     /**
+     * Fetch a list of all existing tubes.
      *
-     * @return
+     * @return A list of all existing tubes.
      */
     public List<String> listTubes();
 
     /**
+     * Fetch the tube currently being used by this client.
      *
-     * @return
+     * @return The used tube.
      */
     public String listTubeUsed();
 
     /**
+     * Fetch the list of tubes currently being watched by this client.
      *
-     * @return
+     * @return A list of watched tubes.
      */
     public List<String> listTubesWatched();
 
@@ -219,42 +337,36 @@ public interface Client
      ******************************************************************/
      
     /**
-     * return the version of this Beanstalkd Client
-     *
-     * @return
+     * Get the version of this beanstalk client.
      */
     public String getClientVersion();
 
     /**
-     * return the version of the beanstalkd daemon
-     *
-     * @return
+     * Get the version of the beanstalkd daemon.
      */
     public String getServerVersion();
 
     /**
-     * close underlying connection to beanstalkd
+     * Close underlying connection to beanstalkd.
      */
     public void close();
 
     /**
-     * one unique connection per thread or a single shared connection?
-     *
-     * @return
+     * Get whether this client creates one connection per thread or one shared connection.
      */
     public boolean isUniqueConnectionPerThread();
 
     /**
-     *
-     * @param uniqueConnectionPerThread
+     * Set whether this client creates one connection per thread or one shared connection.
      */
     public void setUniqueConnectionPerThread(boolean uniqueConnectionPerThread);
 
     /**
+     * Pause a tube. There's no documentation for this command in the protocol.
      *
-     * @param tubeName is the tube to pause
-     * @param pause is an integer number of seconds to wait before reserving any more
-    jobs from the queue
+     * @param tubeName The tube to pause.
+     * @param pause An integer number of seconds to wait before reserving any
+     * more jobs from the queue.
      */
     public boolean pauseTube(String tubeName, int pause);
 }

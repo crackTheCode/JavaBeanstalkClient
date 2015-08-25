@@ -21,6 +21,10 @@ package com.surftools.BeanstalkClientImpl;
  * along with JavaBeanstalkCLient. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+/**
+ * Encapsulates a request to the server.
+ */
 public class Request
 {
 

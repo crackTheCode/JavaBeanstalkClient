@@ -35,6 +35,9 @@ import java.util.Map;
 
 import com.surftools.BeanstalkClient.BeanstalkException;
 
+/**
+ * Communicates with the server.
+ */
 public class ProtocolHandler
 {
 
@@ -293,6 +296,9 @@ public class ProtocolHandler
         }
     }
 
+    /**
+     * Parse a YAML map.
+     */
     private Map<String, String> parseForMap(InputStream is)
     {
         Map<String, String> map = new LinkedHashMap<String, String>();
@@ -321,6 +327,9 @@ public class ProtocolHandler
         return map;
     }
 
+    /**
+     * Parse a YAML list of string.
+     */
     private List<String> parseForList(InputStream is)
     {
         List<String> list = new ArrayList<String>();

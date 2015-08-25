@@ -21,28 +21,28 @@ package com.surftools.BeanstalkClient;
  * along with JavaBeanstalkCLient. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 /**
+ * Interface for a job.
  *
  * @author Robert Tykulsker
  */
 public interface Job
 {
-
     /**
+     * Get the job ID for this job.
      *
-     * @return
+     * @return The job ID.
      */
     public long getJobId();
 
     /**
-     *
-     * @return
+     * Fetch the raw data for this job.
      */
     public byte[] getData();
 
     /**
-     *
-     * @param data
+     * Set the raw data for this job.
      */
     public void setData(byte[] data);
 }

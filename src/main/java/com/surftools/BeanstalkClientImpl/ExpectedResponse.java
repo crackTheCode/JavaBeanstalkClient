@@ -21,13 +21,32 @@ package com.surftools.BeanstalkClientImpl;
  * along with JavaBeanstalkCLient. If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
+/**
+ * Enumerates the types of responses that we expect from the server.
+ */
 public enum ExpectedResponse
 {
-
+    /**
+     * The command does not contain data.
+     */
     None(0),
+
+    /**
+     * The command contains raw data, such as a job.
+     */
     ByteArray(1),
+
+    /**
+     * The command contains a YAML document with a list of strings.
+     */
     List(2),
+
+    /**
+     * The command contains a YAML document with a map from string to string.
+     */
     Map(3);
+
     private int id = 0;
 
     ExpectedResponse(int id)
