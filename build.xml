@@ -1,0 +1,55 @@
+<project name="BeanstalkClient" default="jar" basedir=".">
+
+    <!-- Import environment variables. -->
+    <property environment="env"/>
+    <property file="build.properties"/>
+
+    <property name="classes.dir" value="classes"/>
+    <property name="source.dir" value="src/main"/>
+    <property name="javadoc.dir" value="docs/api"/>
+    <property name="depend_cache.dir" value="depend_cache"/>
+
+    <target name="prepare">
+        <mkdir dir="${classes.dir}"/>
+    </target>
+
+    <target name="clean">
+        <delete dir="${classes.dir}"/>
+        <delete dir="${javadoc.dir}"/>
+        <delete dir="${depend_cache.dir}"/>
+    </target>
+
+    <target name="depend" depends="prepare">
+        <depend srcdir="${source.dir}" destdir="${classes.dir}" cache="${depend_cache.dir}">
+            <include name="**/*.java"/>
+        </depend>
+    </target>
+
+    <target name="compile" depends="depend">
+        <javac srcdir="${source.dir}" destdir="${classes.dir}" debug="on" optimize="on"
+	    deprecation="on" source="1.6" includeantruntime="false">
+
+            <compilerarg value="-Xlint:unchecked"/>
+            <include name="**/*.java"/>
+        </javac>
+    </target>
+
+    <target name="jar" depends="compile">
+        <jar destfile="BeanstalkClient.jar" basedir="${classes.dir}"/>
+    </target>
+
+    <target name="javadoc" depends="prepare">
+        <mkdir dir="${javadoc.dir}"/>
+
+        <javadoc
+            sourcepath="${source.dir}"
+            packagenames="*"
+            destdir="${javadoc.dir}"
+            classpathref="compile.classpath"
+            access="package"
+            version="false">
+
+            <link href="file:///usr/java/j2sdk1.4.1_01/docs/api"/>
+        </javadoc>
+    </target>
+</project>

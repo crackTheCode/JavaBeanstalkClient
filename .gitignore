@@ -1,1 +1,4 @@
 /target/
+/classes
+/depend_cache
+/BeanstalkClient.jar
