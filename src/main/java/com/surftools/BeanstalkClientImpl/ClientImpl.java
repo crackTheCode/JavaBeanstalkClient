@@ -30,56 +30,45 @@ import java.util.Map;
 /**
  * Concrete implementation of the Client interface.
  */
-public class ClientImpl implements Client
-{
+public class ClientImpl implements Client {
     private static final String VERSION = "1.4.6";
     private static final long MAX_PRIORITY = 4294967296L;
     private String host;
     private int port;
     private boolean uniqueConnectionPerThread = true;
     private ProtocolHandler aProtocolHandler = null;
-    private ThreadLocal<ProtocolHandler> tlProtocolHandler = new ThreadLocal<ProtocolHandler>()
-    {
+    private ThreadLocal<ProtocolHandler> tlProtocolHandler = new ThreadLocal<ProtocolHandler>() {
         @Override // ThreadLocal
-        protected ProtocolHandler initialValue()
-        {
+        protected ProtocolHandler initialValue() {
             return new ProtocolHandler(host, port);
         }
     };
 
-    private ProtocolHandler getProtocolHandler()
-    {
-        if(uniqueConnectionPerThread)
-        {
+    private ProtocolHandler getProtocolHandler() {
+        if (uniqueConnectionPerThread) {
             return tlProtocolHandler.get();
-        }
-        else
-        {
+        } else {
             return aProtocolHandler;
         }
     }
 
-    public ClientImpl()
-    {
+    public ClientImpl() {
         this(DEFAULT_HOST, DEFAULT_PORT);
     }
 
-    public ClientImpl(String host, int port)
-    {
+    public ClientImpl(String host, int port) {
         this.host = host;
         this.port = port;
 
         aProtocolHandler = new ProtocolHandler(host, port);
     }
 
-    public ClientImpl(boolean useBlockIO)
-    {
+    public ClientImpl(boolean useBlockIO) {
         this(DEFAULT_HOST, DEFAULT_PORT);
         getProtocolHandler().setUseBlockIO(useBlockIO);
     }
 
-    public ClientImpl(String host, int port, boolean useBlockIO)
-    {
+    public ClientImpl(String host, int port, boolean useBlockIO) {
         this(host, port);
         getProtocolHandler().setUseBlockIO(useBlockIO);
     }
@@ -88,47 +77,38 @@ public class ClientImpl implements Client
     // Producer methods
     // ****************************************************************
     @Override // Client
-    public long put(long priority, int delaySeconds, int timeToRun, byte[] data)
-    {
-        if(data == null)
-        {
+    public long put(long priority, int delaySeconds, int timeToRun, byte[] data) {
+        if (data == null) {
             throw new BeanstalkException("null data");
         }
-        if(priority > MAX_PRIORITY)
-        {
+        if (priority > MAX_PRIORITY) {
             throw new BeanstalkException("invalid priority");
         }
         long jobId = -1;
         Request request = new Request(
                 "put " + priority + " " + delaySeconds + " " + timeToRun + " " + data.length,
-                new String[]
-                {
+                new String[] {
                     "INSERTED", "BURIED"
                 },
-                new String[]
-                {
+                new String[] {
                     "JOB_TOO_BIG"
                 },
                 data,
                 ExpectedResponse.None);
         Response response = getProtocolHandler().processRequest(request);
-        if(response != null && response.getStatus().equals("JOB_TOO_BIG"))
-        {
+        if (response != null && response.getStatus().equals("JOB_TOO_BIG")) {
             BeanstalkException be = new BeanstalkException(response.getStatus());
             throw be;
         }
-        if(response != null && response.isMatchOk())
-        {
+        if (response != null && response.isMatchOk()) {
             jobId = Long.parseLong(response.getReponse());
         }
         return jobId;
     }
 
     @Override // Client
-    public void useTube(String tubeName)
-    {
-        if(tubeName == null)
-        {
+    public void useTube(String tubeName) {
+        if (tubeName == null) {
             throw new BeanstalkException("null tubeName");
         }
         Request request = new Request(
@@ -145,33 +125,28 @@ public class ClientImpl implements Client
     //	job-related
     // ****************************************************************	
     @Override // Client
-    public Job reserve(Integer timeoutSeconds)
-    {
+    public Job reserve(Integer timeoutSeconds) {
         Job job = null;
         String command = (timeoutSeconds == null)
                          ? "reserve"
                          : "reserve-with-timeout " + timeoutSeconds.toString();
         Request request = new Request(
                 command,
-                new String[]
-                {
+                new String[] {
                     "RESERVED"
                 },
-                new String[]
-                {
+                new String[] {
                     "DEADLINE_SOON", "TIMED_OUT",
                 },
                 null,
                 ExpectedResponse.ByteArray,
                 2);
         Response response = getProtocolHandler().processRequest(request);
-        if(response != null && response.getStatus().equals("DEADLINE_SOON"))
-        {
+        if (response != null && response.getStatus().equals("DEADLINE_SOON")) {
             BeanstalkException be = new BeanstalkException(response.getStatus());
             throw be;
         }
-        if(response != null && response.isMatchOk())
-        {
+        if (response != null && response.isMatchOk()) {
             long jobId = Long.parseLong(response.getReponse());
             job = new JobImpl(jobId);
             job.setData((byte[]) response.getData());
@@ -180,8 +155,7 @@ public class ClientImpl implements Client
     }
 
     @Override // Client
-    public boolean delete(long jobId)
-    {
+    public boolean delete(long jobId) {
         Request request = new Request(
                 "delete " + jobId,
                 "DELETED",
@@ -193,16 +167,13 @@ public class ClientImpl implements Client
     }
 
     @Override // Client
-    public boolean release(long jobId, long priority, int delaySeconds)
-    {
+    public boolean release(long jobId, long priority, int delaySeconds) {
         Request request = new Request(
                 "release " + jobId + " " + priority + " " + delaySeconds,
-                new String[]
-                {
+                new String[] {
                     "RELEASED"
                 },
-                new String[]
-                {
+                new String[] {
                     "NOT_FOUND", "BURIED"
                 },
                 null,
@@ -212,8 +183,7 @@ public class ClientImpl implements Client
     }
 
     @Override // Client
-    public boolean bury(long jobId, long priority)
-    {
+    public boolean bury(long jobId, long priority) {
         Request request = new Request(
                 "bury " + jobId + " " + priority,
                 "BURIED",
@@ -225,8 +195,7 @@ public class ClientImpl implements Client
     }
 
     @Override // Client
-    public boolean touch(long jobId)
-    {
+    public boolean touch(long jobId) {
         Request request = new Request(
                 "touch " + jobId,
                 "TOUCHED",
@@ -242,10 +211,8 @@ public class ClientImpl implements Client
     //	tube-related
     // ****************************************************************
     @Override // Client
-    public int watch(String tubeName)
-    {
-        if(tubeName == null)
-        {
+    public int watch(String tubeName) {
+        if (tubeName == null) {
             throw new BeanstalkException("null tubeName");
         }
         Request request = new Request(
@@ -259,16 +226,13 @@ public class ClientImpl implements Client
     }
 
     @Override // Client
-    public int ignore(String tubeName)
-    {
-        if(tubeName == null)
-        {
+    public int ignore(String tubeName) {
+        if (tubeName == null) {
             throw new BeanstalkException("null tubeName");
         }
         Request request = new Request(
                 "ignore " + tubeName,
-                new String[]
-                {
+                new String[] {
                     "WATCHING", "NOT_IGNORED"
                 },
                 null,
@@ -283,8 +247,7 @@ public class ClientImpl implements Client
     //	peek-related
     // ****************************************************************
     @Override // Client
-    public Job peek(long jobId)
-    {
+    public Job peek(long jobId) {
         Job job = null;
         Request request = new Request(
                 "peek " + jobId,
@@ -294,8 +257,7 @@ public class ClientImpl implements Client
                 ExpectedResponse.ByteArray,
                 2);
         Response response = getProtocolHandler().processRequest(request);
-        if(response != null && response.isMatchOk())
-        {
+        if (response != null && response.isMatchOk()) {
             jobId = Long.parseLong(response.getReponse());
             job = new JobImpl(jobId);
             job.setData((byte[]) response.getData());
@@ -304,8 +266,7 @@ public class ClientImpl implements Client
     }
 
     @Override // Client
-    public Job peekBuried()
-    {
+    public Job peekBuried() {
         Job job = null;
         Request request = new Request(
                 "peek-buried",
@@ -315,8 +276,7 @@ public class ClientImpl implements Client
                 ExpectedResponse.ByteArray,
                 2);
         Response response = getProtocolHandler().processRequest(request);
-        if(response != null && response.isMatchOk())
-        {
+        if (response != null && response.isMatchOk()) {
             long jobId = Long.parseLong(response.getReponse());
             job = new JobImpl(jobId);
             job.setData((byte[]) response.getData());
@@ -325,8 +285,7 @@ public class ClientImpl implements Client
     }
 
     @Override // Client
-    public Job peekDelayed()
-    {
+    public Job peekDelayed() {
         Job job = null;
         Request request = new Request(
                 "peek-delayed",
@@ -336,8 +295,7 @@ public class ClientImpl implements Client
                 ExpectedResponse.ByteArray,
                 2);
         Response response = getProtocolHandler().processRequest(request);
-        if(response != null && response.isMatchOk())
-        {
+        if (response != null && response.isMatchOk()) {
             long jobId = Long.parseLong(response.getReponse());
             job = new JobImpl(jobId);
             job.setData((byte[]) response.getData());
@@ -346,8 +304,7 @@ public class ClientImpl implements Client
     }
 
     @Override // Client
-    public Job peekReady()
-    {
+    public Job peekReady() {
         Job job = null;
         Request request = new Request(
                 "peek-ready",
@@ -357,8 +314,7 @@ public class ClientImpl implements Client
                 ExpectedResponse.ByteArray,
                 2);
         Response response = getProtocolHandler().processRequest(request);
-        if(response != null && response.isMatchOk())
-        {
+        if (response != null && response.isMatchOk()) {
             long jobId = Long.parseLong(response.getReponse());
             job = new JobImpl(jobId);
             job.setData((byte[]) response.getData());
@@ -367,8 +323,7 @@ public class ClientImpl implements Client
     }
 
     @Override // Client
-    public int kick(int count)
-    {
+    public int kick(int count) {
         Request request = new Request(
                 "kick " + count,
                 "KICKED",
@@ -376,8 +331,7 @@ public class ClientImpl implements Client
                 null,
                 ExpectedResponse.None);
         Response response = getProtocolHandler().processRequest(request);
-        if(response != null && response.isMatchOk())
-        {
+        if (response != null && response.isMatchOk()) {
             count = Integer.parseInt(response.getReponse());
         }
         return count;
@@ -389,8 +343,7 @@ public class ClientImpl implements Client
     // ****************************************************************
     @SuppressWarnings("unchecked")
     @Override // Client
-    public Map<String, String> statsJob(long jobId)
-    {
+    public Map<String, String> statsJob(long jobId) {
         Request request = new Request(
                 "stats-job " + jobId,
                 "OK",
@@ -399,8 +352,7 @@ public class ClientImpl implements Client
                 ExpectedResponse.Map);
         Response response = getProtocolHandler().processRequest(request);
         Map<String, String> map = null;
-        if(response != null && response.isMatchOk())
-        {
+        if (response != null && response.isMatchOk()) {
             map = (Map<String, String>) response.getData();
         }
         return map;
@@ -408,10 +360,8 @@ public class ClientImpl implements Client
 
     @SuppressWarnings("unchecked")
     @Override // Client
-    public Map<String, String> statsTube(String tubeName)
-    {
-        if(tubeName == null)
-        {
+    public Map<String, String> statsTube(String tubeName) {
+        if (tubeName == null) {
             return null;
         }
 
@@ -423,8 +373,7 @@ public class ClientImpl implements Client
                 ExpectedResponse.Map);
         Response response = getProtocolHandler().processRequest(request);
         Map<String, String> map = null;
-        if(response != null && response.isMatchOk())
-        {
+        if (response != null && response.isMatchOk()) {
             map = (Map<String, String>) response.getData();
         }
         return map;
@@ -432,8 +381,7 @@ public class ClientImpl implements Client
 
     @SuppressWarnings("unchecked")
     @Override // Client
-    public Map<String, String> stats()
-    {
+    public Map<String, String> stats() {
         Request request = new Request(
                 "stats",
                 "OK",
@@ -442,8 +390,7 @@ public class ClientImpl implements Client
                 ExpectedResponse.Map);
         Response response = getProtocolHandler().processRequest(request);
         Map<String, String> map = null;
-        if(response != null && response.isMatchOk())
-        {
+        if (response != null && response.isMatchOk()) {
             map = (Map<String, String>) response.getData();
         }
         return map;
@@ -451,8 +398,7 @@ public class ClientImpl implements Client
 
     @SuppressWarnings("unchecked")
     @Override // Client
-    public List<String> listTubes()
-    {
+    public List<String> listTubes() {
         Request request = new Request(
                 "list-tubes",
                 "OK",
@@ -461,16 +407,14 @@ public class ClientImpl implements Client
                 ExpectedResponse.List);
         Response response = getProtocolHandler().processRequest(request);
         List<String> list = null;
-        if(response != null && response.isMatchOk())
-        {
+        if (response != null && response.isMatchOk()) {
             list = (List<String>) response.getData();
         }
         return list;
     }
 
     @Override // Client
-    public String listTubeUsed()
-    {
+    public String listTubeUsed() {
         String tubeName = null;
         Request request = new Request(
                 "list-tube-used",
@@ -479,8 +423,7 @@ public class ClientImpl implements Client
                 null,
                 ExpectedResponse.None);
         Response response = getProtocolHandler().processRequest(request);
-        if(response != null && response.isMatchOk())
-        {
+        if (response != null && response.isMatchOk()) {
             tubeName = response.getReponse();
         }
         return tubeName;
@@ -488,8 +431,7 @@ public class ClientImpl implements Client
 
     @SuppressWarnings("unchecked")
     @Override // Client
-    public List<String> listTubesWatched()
-    {
+    public List<String> listTubesWatched() {
         Request request = new Request(
                 "list-tubes-watched",
                 "OK",
@@ -498,40 +440,34 @@ public class ClientImpl implements Client
                 ExpectedResponse.List);
         Response response = getProtocolHandler().processRequest(request);
         List<String> list = null;
-        if(response != null && response.isMatchOk())
-        {
+        if (response != null && response.isMatchOk()) {
             list = (List<String>) response.getData();
         }
         return list;
     }
 
     @Override // Client
-    public String getClientVersion()
-    {
+    public String getClientVersion() {
         return VERSION;
     }
 
     @Override // Client
-    public void close()
-    {
+    public void close() {
         getProtocolHandler().close();
     }
 
     @Override // Client
-    public boolean isUniqueConnectionPerThread()
-    {
+    public boolean isUniqueConnectionPerThread() {
         return uniqueConnectionPerThread;
     }
 
     @Override // Client
-    public void setUniqueConnectionPerThread(boolean uniqueConnectionPerThread)
-    {
+    public void setUniqueConnectionPerThread(boolean uniqueConnectionPerThread) {
         this.uniqueConnectionPerThread = uniqueConnectionPerThread;
     }
 
     @Override // Client
-    public boolean pauseTube(String tubeName, int pauseDelay)
-    {
+    public boolean pauseTube(String tubeName, int pauseDelay) {
         Request request = new Request(
                 "pause-tube " + tubeName + " " + pauseDelay,
                 "PAUSED",
@@ -539,19 +475,16 @@ public class ClientImpl implements Client
                 null,
                 ExpectedResponse.None);
         Response response = getProtocolHandler().processRequest(request);
-        if(response != null && response.isMatchOk())
-        {
+        if (response != null && response.isMatchOk()) {
             return true;
         }
         return false;
     }
 
     @Override // Client
-    public String getServerVersion()
-    {
+    public String getServerVersion() {
         Map<String, String> stats = stats();
-        if(stats == null)
-        {
+        if (stats == null) {
             throw new BeanstalkException("could not get stats");
         }
         return stats.get("version").trim();

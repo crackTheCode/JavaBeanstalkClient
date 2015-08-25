@@ -25,8 +25,7 @@ package com.surftools.BeanstalkClientImpl;
 /**
  * Enumerates the types of responses that we expect from the server.
  */
-public enum ExpectedResponse
-{
+public enum ExpectedResponse {
     /**
      * The command does not contain data.
      */
@@ -49,22 +48,17 @@ public enum ExpectedResponse
 
     private int id = 0;
 
-    ExpectedResponse(int id)
-    {
+    ExpectedResponse(int id) {
         this.id = id;
     }
 
-    public int getId()
-    {
+    public int getId() {
         return id;
     }
 
-    public static ExpectedResponse getById(int id)
-    {
-        for(ExpectedResponse t : values())
-        {
-            if(t.id == id)
-            {
+    public static ExpectedResponse getById(int id) {
+        for (ExpectedResponse t : values()) {
+            if (t.id == id) {
                 return t;
             }
         }

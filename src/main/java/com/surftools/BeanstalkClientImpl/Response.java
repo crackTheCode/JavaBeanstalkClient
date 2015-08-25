@@ -25,8 +25,7 @@ package com.surftools.BeanstalkClientImpl;
 /**
  * Encapsulates a response from the server.
  */
-public class Response
-{
+public class Response {
 
     private String status;
     private String reponse;
@@ -35,63 +34,51 @@ public class Response
     private boolean matchError;
     private Object data;
 
-    public String getStatus()
-    {
+    public String getStatus() {
         return status;
     }
 
-    public void setStatus(String status)
-    {
+    public void setStatus(String status) {
         this.status = status;
     }
 
-    public String getReponse()
-    {
+    public String getReponse() {
         return reponse;
     }
 
-    public void setReponse(String reponse)
-    {
+    public void setReponse(String reponse) {
         this.reponse = reponse;
     }
 
-    public String getResponseLine()
-    {
+    public String getResponseLine() {
         return responseLine;
     }
 
-    public void setResponseLine(String responseLine)
-    {
+    public void setResponseLine(String responseLine) {
         this.responseLine = responseLine;
     }
 
-    public boolean isMatchOk()
-    {
+    public boolean isMatchOk() {
         return matchOk;
     }
 
-    public void setMatchOk(boolean matchOk)
-    {
+    public void setMatchOk(boolean matchOk) {
         this.matchOk = matchOk;
     }
 
-    public boolean isMatchError()
-    {
+    public boolean isMatchError() {
         return matchError;
     }
 
-    public void setMatchError(boolean matchError)
-    {
+    public void setMatchError(boolean matchError) {
         this.matchError = matchError;
     }
 
-    public Object getData()
-    {
+    public Object getData() {
         return data;
     }
 
-    public void setData(Object data)
-    {
+    public void setData(Object data) {
         this.data = data;
     }
 }

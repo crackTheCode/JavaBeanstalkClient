@@ -33,18 +33,15 @@ import com.surftools.BeanstalkClient.BeanstalkException;
  * Utility classes for serializing Serializable objects to byte arrays, for putting
  * into and getting out of jobs.
  */
-public class Serializer
-{
+public class Serializer {
     /**
      * Serialize an object to a byte array.
      */
-    public static byte[] serializableToByteArray(Serializable serializable)
-    {
+    public static byte[] serializableToByteArray(Serializable serializable) {
         byte[] bytes;
         ByteArrayOutputStream baos = null;
         ObjectOutputStream oos = null;
-        try
-        {
+        try {
             baos = new ByteArrayOutputStream();
             oos = new ObjectOutputStream(baos);
             oos.writeObject(serializable);
@@ -52,9 +49,7 @@ public class Serializer
             bytes = baos.toByteArray();
             oos.close();
             baos.close();
-        }
-        catch(Exception e)
-        {
+        } catch(Exception e) {
             throw new BeanstalkException(e.getMessage());
         }
         return bytes;
@@ -63,19 +58,15 @@ public class Serializer
     /**
      * Deserialize a byte array into an object.
      */
-    public static Serializable byteArrayToSerializable(byte[] bytes)
-    {
+    public static Serializable byteArrayToSerializable(byte[] bytes) {
         Serializable serializable = null;
         ByteArrayInputStream bais = null;
         ObjectInputStream ois = null;
-        try
-        {
+        try {
             bais = new ByteArrayInputStream(bytes);
             ois = new ObjectInputStream(bais);
             serializable = (Serializable) ois.readObject();
-        }
-        catch(Exception e)
-        {
+        } catch(Exception e) {
             throw new BeanstalkException(e.getMessage());
         }
         return serializable;

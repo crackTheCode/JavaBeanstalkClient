@@ -27,8 +27,7 @@ package com.surftools.BeanstalkClient;
  *
  * @author Robert Tykulsker
  */
-public interface Job
-{
+public interface Job {
     /**
      * Get the job ID for this job.
      *

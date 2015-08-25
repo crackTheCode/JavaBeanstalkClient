@@ -25,8 +25,7 @@ package com.surftools.BeanstalkClientImpl;
 /**
  * Encapsulates a request to the server.
  */
-public class Request
-{
+public class Request {
 
     private String command;
     private String[] validStates;
@@ -35,12 +34,10 @@ public class Request
     private ExpectedResponse expectedResponse;
     private int expectedDataLengthIndex;
 
-    public Request()
-    {
+    public Request() {
     }
 
-    public Request(String command, String[] validStates, String[] errorStates, byte[] data, ExpectedResponse expectedResponse)
-    {
+    public Request(String command, String[] validStates, String[] errorStates, byte[] data, ExpectedResponse expectedResponse) {
         this.command = command;
         this.validStates = validStates;
         this.errorStates = errorStates;
@@ -49,28 +46,22 @@ public class Request
         this.expectedDataLengthIndex = -1;
     }
 
-    public Request(String command, String[] validStates, String[] errorStates, byte[] data, ExpectedResponse expectedResponse, int expectedDataLengthIndex)
-    {
+    public Request(String command, String[] validStates, String[] errorStates, byte[] data, ExpectedResponse expectedResponse, int expectedDataLengthIndex) {
         this(command, validStates, errorStates, data, expectedResponse);
         this.expectedDataLengthIndex = expectedDataLengthIndex;
     }
 
-    public Request(String command, String validState, String errorState, byte[] data, ExpectedResponse expectedResponse)
-    {
+    public Request(String command, String validState, String errorState, byte[] data, ExpectedResponse expectedResponse) {
         this.command = command;
 
-        if(validState != null)
-        {
-            validStates = new String[]
-            {
+        if(validState != null) {
+            validStates = new String[] {
                 validState
             };
         }
 
-        if(errorState != null)
-        {
-            errorStates = new String[]
-            {
+        if(errorState != null) {
+            errorStates = new String[] {
                 errorState
             };
         }
@@ -80,69 +71,56 @@ public class Request
         this.expectedDataLengthIndex = -1;
     }
 
-    public Request(String command, String validState, String errorState, byte[] data, ExpectedResponse expectedResponse, int expectedDataLengthIndex)
-    {
+    public Request(String command, String validState, String errorState, byte[] data, ExpectedResponse expectedResponse, int expectedDataLengthIndex) {
         this(command, validState, errorState, data, expectedResponse);
         this.expectedDataLengthIndex = expectedDataLengthIndex;
     }
 
-    public String getCommand()
-    {
+    public String getCommand() {
         return command;
     }
 
-    public void setCommand(String command)
-    {
+    public void setCommand(String command) {
         this.command = command;
     }
 
-    public String[] getValidStates()
-    {
+    public String[] getValidStates() {
         return validStates;
     }
 
-    public void setValidStates(String[] validStates)
-    {
+    public void setValidStates(String[] validStates) {
         this.validStates = validStates;
     }
 
-    public String[] getErrorStates()
-    {
+    public String[] getErrorStates() {
         return errorStates;
     }
 
-    public void setErrorStates(String[] errorStates)
-    {
+    public void setErrorStates(String[] errorStates) {
         this.errorStates = errorStates;
     }
 
-    public byte[] getData()
-    {
+    public byte[] getData() {
         return data;
     }
 
-    public void setData(byte[] data)
-    {
+    public void setData(byte[] data) {
         this.data = data;
     }
 
-    public ExpectedResponse getExpectedResponse()
-    {
+    public ExpectedResponse getExpectedResponse() {
         return expectedResponse;
     }
 
-    public void setExpectedResponse(ExpectedResponse expectedResponse)
-    {
+    public void setExpectedResponse(ExpectedResponse expectedResponse) {
         this.expectedResponse = expectedResponse;
     }
 
-    public void setExpectedDataLengthIndex(int index)
-    {
+    public void setExpectedDataLengthIndex(int index) {
         this.expectedDataLengthIndex = index;
     }
 
-    public int getExpectedDataLengthIndex()
-    {
+    public int getExpectedDataLengthIndex() {
         return this.expectedDataLengthIndex;
     }
 }
