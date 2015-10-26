@@ -83,10 +83,12 @@ public interface BeanstalkClient {
      * for us. Specify null to mean "indefinitely" or 0 to return immediately if
      * no jobs are available.
      *
-     * @return The reserved job. Never null.
+     * @return The reserved job, or null on timeout.
      *
      * @throws IOException on network error.
-     * @throws BeanstalkException on protocol error.
+     * @throws BeanstalkException on protocol error or DEADLINE_SOON, in which
+     * case the exception message is the string "DEADLINE_SOON". See the
+     * protocol docs for details.
      */
     public Job reserve(Integer timeoutSeconds) throws IOException;
 
