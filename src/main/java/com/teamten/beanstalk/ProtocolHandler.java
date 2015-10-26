@@ -45,10 +45,17 @@ class ProtocolHandler {
     private static final byte[] CRLF = {
         '\r', '\n'
     };
+    /**
+     * Simple 30-second timeout for reads.
+     */
+    private static final int TIMEOUT_MS = 30*1000;
     private Socket socket;
 
     ProtocolHandler(String host, int port) throws IOException {
         socket = new Socket(host, port);
+
+        // Set a read timeout.
+        socket.setSoTimeout(TIMEOUT_MS);
     }
 
     /**
