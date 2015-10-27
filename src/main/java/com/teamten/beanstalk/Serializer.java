@@ -37,7 +37,11 @@ import java.io.Serializable;
  */
 public class Serializer {
     /**
-     * Serialize an object to a byte array.
+     * Serialize an object to a byte array using Java's standard serialization scheme.
+     *
+     * @param serializable the object to serialize.
+     * @return the raw serialized array.
+     * @throws IOException on any IO error.
      */
     public static byte[] serializableToByteArray(Serializable serializable) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -53,6 +57,11 @@ public class Serializer {
 
     /**
      * Deserialize a byte array into an object.
+     *
+     * @param bytes the raw serialized object.
+     * @return the object that was serialized.
+     * @throws IOException on any IO error.
+     * @throws ClassNotFoundException if the object's class cannot be loaded.
      */
     public static Serializable byteArrayToSerializable(byte[] bytes) throws IOException, ClassNotFoundException {
         ByteArrayInputStream bais = new ByteArrayInputStream(bytes);

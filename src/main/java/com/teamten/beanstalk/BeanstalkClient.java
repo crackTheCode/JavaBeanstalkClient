@@ -403,6 +403,8 @@ public interface BeanstalkClient {
      
     /**
      * Get the version of this beanstalk client.
+     *
+     * @return the version of this client as a string.
      */
     public String getClientVersion();
 
@@ -411,6 +413,7 @@ public interface BeanstalkClient {
      *
      * @throws IOException on network error.
      * @throws BeanstalkException on protocol error.
+     * @return the version of the daemon as a string.
      */
     public String getServerVersion() throws IOException;
 
@@ -428,6 +431,7 @@ public interface BeanstalkClient {
      *
      * @throws IOException on network error.
      * @throws BeanstalkException on protocol error.
+     * @return a boolean unknown.
      */
     public boolean pauseTube(String tubeName, int pause) throws IOException;
 }

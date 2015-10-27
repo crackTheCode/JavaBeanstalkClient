@@ -36,8 +36,8 @@ public class BeanstalkClientImpl implements BeanstalkClient {
     private ProtocolHandler protocolHandler = null;
 
     /**
-     * Create a client with the default {@link BeanstalkClient.DEFAULT_HOST host}
-     * and {@link BeanstalkClient.DEFAULT_PORT port}.
+     * Create a client with the default {@link BeanstalkClient#DEFAULT_HOST host}
+     * and {@link BeanstalkClient#DEFAULT_PORT port}.
      *
      * @throws IOException if it could not connect to the server.
      */
@@ -48,6 +48,8 @@ public class BeanstalkClientImpl implements BeanstalkClient {
     /**
      * Create a client with the specified host and port.
      *
+     * @param host the hostname to connect to.
+     * @param port the port to connect to.
      * @throws IOException if it could not connect to the server.
      */
     public BeanstalkClientImpl(String host, int port) throws IOException {

@@ -37,11 +37,15 @@ public interface Job {
 
     /**
      * Fetch the raw data for this job.
+     *
+     * @return the raw data for this job.
      */
     public byte[] getData();
 
     /**
      * Set the raw data for this job.
+     *
+     * @param data raw data to use for this job.
      */
     public void setData(byte[] data);
 }
