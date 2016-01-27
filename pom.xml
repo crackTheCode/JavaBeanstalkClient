@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.teamten</groupId>
     <artifactId>BeanstalkClient</artifactId>
-    <version>1.4.8-SNAPSHOT</version>
+    <version>1.4.9-SNAPSHOT</version>
     <packaging>jar</packaging>    
     <name>BeanstalkClient</name>
     <description>BeanstalkClient is a Beanstalkd Java client</description>
